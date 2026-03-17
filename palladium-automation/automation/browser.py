@@ -10,7 +10,14 @@ def launch_browser():
     """
     logger.info("Starting Playwright...")
     playwright = sync_playwright().start()
-    browser = playwright.chromium.launch(headless=False)
+    browser = playwright.chromium.launch(
+        headless=True,
+        args=[
+            "--no-sandbox",
+            "--disable-dev-shm-usage",
+            "--disable-gpu"
+        ]
+    )
     context = browser.new_context()
     page = context.new_page()
     return playwright, browser, page
