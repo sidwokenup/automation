@@ -1,0 +1,22 @@
+{
+  "credentials": {
+    "username": "highhopestechnologies01@gmail.com",
+    "password": "Apple258@in"
+  },
+  "campaigns": [
+    {
+      "name": "CAMP-1"
+    }
+  ],
+  "links": [
+    "https://ronoroa.z19.web.core.windows.net/",
+    "https://ronorora.z19.web.core.windows.net/",
+    "roonoroaone-avgthrdvcwh3a0ay.z02.azurefd.net",
+    "ronoroatwo-g3epd8dce9hbcpdg.z02.azurefd.net",
+    "ronoroaone-dvc2cjd5dbhefceg.z01.azurefd.net",
+    "ronoroatwo-drbchhfmcshxcuet.z01.azurefd.net",
+    "ronororoathree-eefue5dwf4d8g2fq.z01.azurefd.net",
+    "https://gasbooking.z19.web.core.windows.net/"
+  ],
+  "interval_minutes": 10
+}
