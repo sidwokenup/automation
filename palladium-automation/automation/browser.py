@@ -12,6 +12,7 @@ def launch_browser():
     playwright = sync_playwright().start()
     browser = playwright.chromium.launch(
         headless=True,
+        executable_path="/usr/bin/chromium-browser",
         args=[
             "--no-sandbox",
             "--disable-dev-shm-usage",
