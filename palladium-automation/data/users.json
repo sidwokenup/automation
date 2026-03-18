@@ -14,6 +14,28 @@
       "ronororoathree-eefue5dwf4d8g2fq.z01.azurefd.net",
       "https://gasbooking.z19.web.core.windows.net/"
     ],
-    "running": true
+    "running": false,
+    "current_index": 1
+  },
+  "8491744342": {
+    "state": "COMPLETED",
+    "username": "Highhopestechnologies01@gmail.com",
+    "password": "Apple258@in",
+    "campaign": "CAMP-1",
+    "links": [
+      "https://jameson-therre-fthzgeb5h4gkcfhj.z02.azurefd.net",
+      "https://jameson-three-ehdeckb3cga5eudk.z02.azurefd.net",
+      "https://jameson-three-hcdxapa9gggkajfz.z02.azurefd.net",
+      "https://jameson-two-a7gje4gvd4cgergz.z02.azurefd.net",
+      "https://jameson-two-hkheehc6cndxhdgx.z02.azurefd.net",
+      "https://jameson-two-apfne3esbcgfghft.z01.azurefd.net",
+      "https://jameson-two-e2c8e8budccyfmbd.z02.azurefd.net",
+      "https://jameson-one-gegwancwb6gmgcfx.z02.azurefd.net/",
+      "https://jameson-one-bnh8era5fba2a7bk.z02.azurefd.net",
+      "https://jamesone-one-fucka2h9cmakbzcc.z02.azurefd.net"
+    ],
+    "running": false,
+    "current_index": 8,
+    "interval": 3
   }
 }
