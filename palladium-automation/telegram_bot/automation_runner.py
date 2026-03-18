@@ -304,24 +304,24 @@ def automation_loop(user_id, config, logger):
                 error_count = 0
                 
                 # Update persistent index ONLY after successful update
-            link_index = (link_index + 1) % len(links)
-            update_current_index(user_id, link_index)
-            add_log(user_id, f"Next index will be: {link_index}")
-            
-            # Mark error as resolved if it was active
-            bot_instance = user_bots.get(str(user_id))
-            if mark_error_resolved(user_id) and bot_instance:
-                 asyncio.run_coroutine_threadsafe(
-                    send_error_alert(bot_instance, user_id, "✅ *Automation Resumed*\n\nSystem has recovered and automation is running normally."),
-                    bot_instance.loop
-                )
-
-            # Save user data to disk explicitly after status/index change
+                link_index = (link_index + 1) % len(links)
+                update_current_index(user_id, link_index)
+                add_log(user_id, f"Next index will be: {link_index}")
+                
+                # Mark error as resolved if it was active
+                bot_instance = user_bots.get(str(user_id))
+                if mark_error_resolved(user_id) and bot_instance:
+                     asyncio.run_coroutine_threadsafe(
+                        send_error_alert(bot_instance, user_id, "✅ *Automation Resumed*\n\nSystem has recovered and automation is running normally."),
+                        bot_instance.loop
+                    )
+    
+                # Save user data to disk explicitly after status/index change
                 from telegram_bot.state_manager import get_user, save_users, load_users
                 users = load_users()
                 users[str(user_id)] = get_user(user_id)
                 save_users(users)
-
+    
             except Exception as e:
                 error_msg = str(e)
                 error_count += 1
