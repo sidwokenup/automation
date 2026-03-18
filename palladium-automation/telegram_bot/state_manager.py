@@ -43,17 +43,21 @@ def load_users():
                 try:
                     with open(DATA_FILE, 'r', encoding='utf-8') as f:
                         return json.load(f)
-                except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                except Exception as e:
                     logger.error(f"Error decoding {DATA_FILE}: {e}. Attempting recovery.")
                     
                     # Backup corrupted file
                     try:
                         if os.path.exists(DATA_FILE):
-                            shutil.copy(DATA_FILE, DATA_FILE + ".corrupt")
+                            corrupt_file = DATA_FILE + ".corrupt"
+                            shutil.copy(DATA_FILE, corrupt_file)
                     except Exception as backup_error:
                         logger.error(f"Failed to backup corrupted file: {backup_error}")
         
                     # Return empty dict to prevent crash, caller should handle re-init if needed
+                    with open(DATA_FILE, "w", encoding="utf-8") as f:
+                        json.dump({}, f)
+                        
                     return {}
         except Exception as e:
             logger.error(f"Error loading users (Lock/File issue): {e}")
@@ -67,8 +71,6 @@ def save_users(data):
             with lock.acquire(timeout=10):
                 # Ensure directory exists
                 os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-                
-                backup_file()
                 
                 # Use 'w' mode with utf-8 encoding for safety
                 # Atomic write: write to temp, then rename
