@@ -125,8 +125,12 @@ def start_automation(user_id, config, logger, bot_instance=None):
     }
     
     # Update running status in disk
-    from telegram_bot.state_manager import set_running
-    set_running(str_user_id, True)
+    from telegram_bot.state_manager import load_users, save_users
+    user_data = load_users()
+    if str_user_id in user_data:
+        user_data[str_user_id]["running"] = True
+        user_data[str_user_id]["state"] = "RUNNING"
+        save_users(user_data)
     
     # Create and start thread
     thread = threading.Thread(target=automation_loop, args=(str_user_id, config, logger), daemon=True)
@@ -149,8 +153,12 @@ def stop_automation(user_id):
         release_campaign(campaign_name)
     
     # Update disk state regardless of current memory flags to ensure persistence
-    from telegram_bot.state_manager import set_running
-    set_running(str_user_id, False)
+    from telegram_bot.state_manager import load_users, save_users
+    users_data = load_users()
+    if str_user_id in users_data:
+        users_data[str_user_id]["running"] = False
+        users_data[str_user_id]["state"] = "STOPPED"
+        save_users(users_data)
     
     if str_user_id in user_flags:
         user_flags[str_user_id] = False
@@ -221,6 +229,15 @@ def automation_loop(user_id, config, logger):
 
     try:
         while user_flags.get(user_id, False):
+            # Keep state alive explicitly in disk to prevent /users drift
+            from telegram_bot.state_manager import load_users, save_users
+            users_data = load_users()
+            str_uid = str(user_id)
+            if str_uid in users_data and not users_data[str_uid].get("running"):
+                users_data[str_uid]["running"] = True
+                users_data[str_uid]["state"] = "RUNNING"
+                save_users(users_data)
+                
             # Validate index (e.g. if user updated links and removed some)
             if link_index >= len(links):
                 link_index = 0
@@ -345,6 +362,13 @@ def automation_loop(user_id, config, logger):
                             bot_instance.loop
                         )
                     
+                    from telegram_bot.state_manager import load_users, save_users
+                    users_data = load_users()
+                    if str(user_id) in users_data:
+                        users_data[str(user_id)]["running"] = False
+                        users_data[str(user_id)]["state"] = "ERROR"
+                        save_users(users_data)
+                        
                     stop_automation(user_id)
                     break
 
@@ -414,8 +438,15 @@ def automation_loop(user_id, config, logger):
         release_campaign(campaign_name)
         
         # Ensure disk state matches memory state on crash/stop
-        from telegram_bot.state_manager import set_running
-        set_running(str(user_id), False)
+        from telegram_bot.state_manager import load_users, save_users
+        users_data = load_users()
+        str_user_id = str(user_id)
+        if str_user_id in users_data:
+            users_data[str_user_id]["running"] = False
+            # Only update state if it wasn't already marked as ERROR by the max_errors handler
+            if users_data[str_user_id].get("state") != "ERROR":
+                users_data[str_user_id]["state"] = "STOPPED"
+            save_users(users_data)
         
         if context:
             try:

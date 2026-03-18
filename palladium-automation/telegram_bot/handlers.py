@@ -17,7 +17,7 @@ async def users_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     active_users = []
     
     for uid, u_data in users_data.items():
-        if u_data.get("running"):
+        if u_data.get("running") == True:
             campaign = u_data.get("campaign", "Unknown")
             active_users.append(f"👤 `{uid}` | 📌 `{campaign}`")
             
