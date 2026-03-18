@@ -1,10 +1,26 @@
 import logging
 import threading
 import time
+import os
 from automation.browser import launch_browser, login, navigate_to_campaigns, open_campaign, update_target_link, ensure_logged_in, ensure_campaign_page
 from telegram_bot.state_manager import get_current_index, update_current_index
 
 import asyncio
+
+# Campaign locks
+active_campaigns = set()
+campaign_lock = threading.Lock()
+
+def acquire_campaign(campaign):
+    with campaign_lock:
+        if campaign in active_campaigns:
+            return False
+        active_campaigns.add(campaign)
+        return True
+
+def release_campaign(campaign):
+    with campaign_lock:
+        active_campaigns.discard(campaign)
 
 # Global storage for tracking user threads and flags
 user_threads = {}
@@ -12,8 +28,9 @@ user_flags = {}
 user_status = {}
 user_logs = {}
 user_bots = {} # Store bot instance per user
-last_error_time = {}
+user_error_state = {} # Track error state per user: {user_id: {"active": bool, "last_time": float}}
 ERROR_COOLDOWN = 300 # 5 minutes
+MAX_ERRORS = 5 # Maximum consecutive errors before stopping automation
 
 async def send_error_alert(bot_instance, user_id, message):
     """Sends an error alert to the user via Telegram."""
@@ -29,10 +46,31 @@ async def send_error_alert(bot_instance, user_id, message):
 def should_send_error(user_id):
     """Checks if an error alert should be sent based on cooldown."""
     now = time.time()
-    last_time = last_error_time.get(str(user_id), 0)
+    str_user_id = str(user_id)
+    
+    if str_user_id not in user_error_state:
+        user_error_state[str_user_id] = {"active": False, "last_time": 0}
+        
+    last_time = user_error_state[str_user_id]["last_time"]
     
     if now - last_time > ERROR_COOLDOWN:
-        last_error_time[str(user_id)] = now
+        return True
+    return False
+
+def mark_error_sent(user_id):
+    """Marks that an error has been sent and updates the timestamp."""
+    str_user_id = str(user_id)
+    if str_user_id not in user_error_state:
+        user_error_state[str_user_id] = {"active": False, "last_time": 0}
+    
+    user_error_state[str_user_id]["active"] = True
+    user_error_state[str_user_id]["last_time"] = time.time()
+
+def mark_error_resolved(user_id):
+    """Marks the error state as resolved."""
+    str_user_id = str(user_id)
+    if str_user_id in user_error_state and user_error_state[str_user_id]["active"]:
+        user_error_state[str_user_id]["active"] = False
         return True
     return False
 
@@ -60,6 +98,12 @@ def start_automation(user_id, config, logger, bot_instance=None):
     """Starts the automation loop for a user in a separate thread."""
     str_user_id = str(user_id)
     
+    # Prevent Duplicate Campaign Usage globally using centralized lock
+    campaign_name = config.get("campaign")
+    if not acquire_campaign(campaign_name):
+        logger.error(f"Campaign {campaign_name} is already in use.")
+        raise Exception(f"Campaign '{campaign_name}' is already running. Please stop it first.")
+
     if bot_instance:
         user_bots[str_user_id] = bot_instance
     
@@ -80,6 +124,10 @@ def start_automation(user_id, config, logger, bot_instance=None):
         "start_time": time.time()
     }
     
+    # Update running status in disk
+    from telegram_bot.state_manager import set_running
+    set_running(str_user_id, True)
+    
     # Create and start thread
     thread = threading.Thread(target=automation_loop, args=(str_user_id, config, logger), daemon=True)
     user_threads[str_user_id] = thread
@@ -93,6 +141,17 @@ def stop_automation(user_id):
     """Stops the automation loop for a user."""
     str_user_id = str(user_id)
     
+    # Release campaign from lock
+    from telegram_bot.state_manager import get_user
+    user_data = get_user(str_user_id)
+    campaign_name = user_data.get("campaign")
+    if campaign_name:
+        release_campaign(campaign_name)
+    
+    # Update disk state regardless of current memory flags to ensure persistence
+    from telegram_bot.state_manager import set_running
+    set_running(str_user_id, False)
+    
     if str_user_id in user_flags:
         user_flags[str_user_id] = False
         if str_user_id in user_status:
@@ -105,33 +164,6 @@ def get_status(user_id):
     """Retrieves the current automation status for a user."""
     return user_status.get(str(user_id), None)
 
-def recover_session(user_id, config, browser, playwright, logger):
-    """Attempts to recover the session by restarting the browser."""
-    logger.warning(f"[User {user_id}] Initiating session recovery...")
-    add_log(user_id, "Recovery triggered: Restarting browser session")
-    
-    if browser:
-        try:
-            browser.close()
-        except:
-            pass
-            
-    if playwright:
-        try:
-            playwright.stop()
-        except:
-            pass
-            
-    try:
-        new_playwright, new_browser, new_page = launch_browser()
-        login(new_page, config["username"], config["password"])
-        add_log(user_id, "Recovery successful: Re-logged in")
-        return new_playwright, new_browser, new_page
-    except Exception as e:
-        logger.error(f"[User {user_id}] Recovery failed: {e}")
-        add_log(user_id, f"Recovery failed: {e}")
-        raise e
-
 def wait_with_interrupt(user_id, seconds):
     """Waits for the specified seconds but can be interrupted if the flag is cleared."""
     for _ in range(seconds):
@@ -140,149 +172,256 @@ def wait_with_interrupt(user_id, seconds):
         time.sleep(1)
 
 def automation_loop(user_id, config, logger):
-    """The main automation loop that runs in the background with persistent session."""
+    """The main automation loop that runs in the background using the centralized session."""
     logger.info(f"[User {user_id}] Automation loop started.")
     add_log(user_id, "Automation loop started")
     
     links = config.get("links", [])
+    campaign_name = config.get("campaign", "Unknown")
+    
     if not links:
         logger.error(f"[User {user_id}] No links found in config to process.")
         add_log(user_id, "Error: No links found in configuration")
         user_flags[user_id] = False
         if user_id in user_status:
             user_status[user_id]["running"] = False
+        release_campaign(campaign_name)
         return
 
     interval_minutes = config.get("interval", 10)
     
-    playwright = None
-    browser = None
+    context = None
     page = None
     
-    # Initial Setup
+    # Initialize Session
+    from telegram_bot.session_manager import SessionManager
+    session = SessionManager.get_instance()
+    
     try:
-        playwright, browser, page = launch_browser()
-        login(page, config["username"], config["password"])
-        add_log(user_id, "Initial login successful")
+        # Start global session if not already started
+        session.start_session(config["username"], config["password"])
+        # Get an isolated page for this specific campaign
+        context, page = session.create_campaign_page()
+        add_log(user_id, "Attached to global browser session")
     except Exception as e:
         logger.error(f"[User {user_id}] Initial setup failed: {e}")
         add_log(user_id, f"Initial setup failed: {e}")
         user_flags[user_id] = False
         if user_id in user_status:
             user_status[user_id]["running"] = False
-        if browser:
-            try: browser.close()
-            except: pass
-        if playwright:
-            try: playwright.stop()
-            except: pass
+        release_campaign(campaign_name)
         return
 
     link_index = get_current_index(user_id)
     failure_count = 0
+    error_count = 0
 
-    while user_flags.get(user_id, False):
-        # Validate index (e.g. if user updated links and removed some)
-        if link_index >= len(links):
-            link_index = 0
-            
-        current_link = links[link_index]
-        
-        # Update status
-        if user_id in user_status:
-            user_status[user_id]["current_link"] = current_link
-            user_status[user_id]["current_index"] = link_index + 1
+    if not os.path.exists("logs"):
+        os.makedirs("logs")
 
-        try:
-            logger.info(f"[User {user_id}] Starting cycle with link index {link_index}: {current_link}")
-            add_log(user_id, f"Using link index: {link_index}")
-            
-            # Ensure persistent state
-            ensure_logged_in(page, config["username"], config["password"])
-            add_log(user_id, "Session valid")
-            
-            ensure_campaign_page(page)
-            open_campaign(page, config["campaign"])
-            add_log(user_id, f"Opened campaign: {config['campaign']}")
-            
-            update_target_link(page, current_link)
-            
-            logger.info(f"[User {user_id}] Updated link successfully: {current_link}")
-            add_log(user_id, f"Updated link successfully: {current_link}")
-            
-            # Update status after success
-            if user_id in user_status:
-                user_status[user_id]["last_updated"] = time.time()
+    try:
+        while user_flags.get(user_id, False):
+            # Validate index (e.g. if user updated links and removed some)
+            if link_index >= len(links):
+                link_index = 0
                 
-            # Reset failure count on success
-            failure_count = 0
+            current_link = links[link_index]
             
-            # Update persistent index ONLY after successful update
+            # Update status
+            if user_id in user_status:
+                user_status[user_id]["current_link"] = current_link
+                user_status[user_id]["current_index"] = link_index + 1
+
+            try:
+                start_time = time.time()
+                logger.info(f"[User {user_id}] Starting cycle with link index {link_index}: {current_link}")
+                add_log(user_id, f"Using link index: {link_index}")
+                
+                # Check for session expiry at the start of the loop
+                if "login" in page.url:
+                    logger.warning(f"[User {user_id}] Session expired detected. Re-logging...")
+                    add_log(user_id, "Session expired. Re-authenticating...")
+                    try:
+                        session.logged_in = False
+                        session.start_session(config["username"], config["password"])
+                        page.wait_for_load_state("networkidle")
+                        page.wait_for_timeout(3000)
+                        logger.info(f"[User {user_id}] Re-login successful.")
+                    except Exception as relogin_error:
+                        logger.error(f"[User {user_id}] Relogin failed: {relogin_error}")
+                        # Don't break, let the outer exception handler catch it or retry next loop
+                        raise relogin_error
+
+                # Ensure persistent state using global session manager
+                session.check_and_recover_session(page)
+                add_log(user_id, "Session verified")
+                logger.info(f"[User {user_id}] Session active")
+                
+                ensure_campaign_page(page)
+                
+                from automation.browser import retry_action, check_campaign_exists
+                
+                # Pre-check if campaign exists before attempting to open it
+                if not check_campaign_exists(page, campaign_name):
+                    logger.warning(f"[User {user_id}] Campaign not found during pre-check: {campaign_name}")
+                    add_log(user_id, f"Error: Campaign '{campaign_name}' not found.")
+                    
+                    # Capture Screenshot on Pre-Check Error
+                    try:
+                        screenshot_filename = f"precheck_error_{user_id}_{int(time.time())}.png"
+                        screenshot_path = os.path.join("logs", screenshot_filename)
+                        page.screenshot(path=screenshot_path, full_page=True)
+                        logger.info(f"[User {user_id}] Pre-check screenshot saved: {screenshot_path}")
+                        add_log(user_id, f"Screenshot saved: {screenshot_filename}")
+                    except Exception as screenshot_error:
+                        logger.error(f"[User {user_id}] Pre-check screenshot failed: {screenshot_error}")
+                    
+                    bot_instance = user_bots.get(str(user_id))
+                    if bot_instance:
+                        msg = f"❌ *Automation Stopped*\n\nCampaign '{campaign_name}' could not be found.\nPlease check the name and try again."
+                        asyncio.run_coroutine_threadsafe(
+                            send_error_alert(bot_instance, user_id, msg),
+                            bot_instance.loop
+                        )
+                    
+                    stop_automation(user_id)
+                    break
+
+                retry_action(lambda: open_campaign(page, campaign_name))
+                add_log(user_id, f"Opened campaign: {campaign_name}")
+                
+                retry_action(lambda: update_target_link(page, current_link))
+                
+                logger.info(f"[User {user_id}] Updated link successfully: {current_link}")
+                add_log(user_id, f"Updated link successfully: {current_link}")
+                
+                # Update status after success
+                if user_id in user_status:
+                    user_status[user_id]["last_updated"] = time.time()
+                    
+                # Reset failure counts on success
+                failure_count = 0
+                error_count = 0
+                
+                # Update persistent index ONLY after successful update
             link_index = (link_index + 1) % len(links)
             update_current_index(user_id, link_index)
             add_log(user_id, f"Next index will be: {link_index}")
-
-        except Exception as e:
-            error_msg = str(e)
-            logger.error(f"[User {user_id}] Error during automation cycle: {e}")
-            add_log(user_id, f"Error: {error_msg}")
             
-            # Send alert if cooldown passed
+            # Mark error as resolved if it was active
             bot_instance = user_bots.get(str(user_id))
-            if should_send_error(user_id) and bot_instance:
-                message = (
-                    "🚨 *Automation Error*\n\n"
-                    f"📌 Campaign: {config.get('campaign', 'Unknown')}\n"
-                    f"❌ Error: `{error_msg}`\n\n"
-                    "🔄 The system will retry automatically."
-                )
-                asyncio.run_coroutine_threadsafe(
-                    send_error_alert(bot_instance, user_id, message),
+            if mark_error_resolved(user_id) and bot_instance:
+                 asyncio.run_coroutine_threadsafe(
+                    send_error_alert(bot_instance, user_id, "✅ *Automation Resumed*\n\nSystem has recovered and automation is running normally."),
                     bot_instance.loop
                 )
 
-            failure_count += 1
-            
-            if failure_count >= 3:
-                logger.error(f"[User {user_id}] Max failures reached. Attempting session recovery...")
+            # Save user data to disk explicitly after status/index change
+                from telegram_bot.state_manager import get_user, save_users, load_users
+                users = load_users()
+                users[str(user_id)] = get_user(user_id)
+                save_users(users)
+
+            except Exception as e:
+                error_msg = str(e)
+                error_count += 1
+                logger.error(f"[User {user_id}] Recoverable error during automation cycle: {e}. Error count: {error_count}/{MAX_ERRORS}")
+                add_log(user_id, f"Recoverable error: {error_msg} (Count: {error_count})")
                 
-                # Alert for recovery
-                add_log(user_id, "Recovery triggered")
+                # Check for Max Error Limit
+                if error_count >= MAX_ERRORS:
+                    logger.error(f"[User {user_id}] Max error limit reached ({MAX_ERRORS}). Stopping automation to prevent infinite loop.")
+                    add_log(user_id, "❌ Max error limit reached. Stopping automation.")
+                    
+                    bot_instance = user_bots.get(str(user_id))
+                    if bot_instance:
+                        stop_msg = (
+                            "❌ *Automation Stopped*\n\n"
+                            f"Reason: Reached maximum limit of {MAX_ERRORS} consecutive errors.\n"
+                            "Please check your campaign settings and try again."
+                        )
+                        asyncio.run_coroutine_threadsafe(
+                            send_error_alert(bot_instance, user_id, stop_msg),
+                            bot_instance.loop
+                        )
+                    
+                    stop_automation(user_id)
+                    break
+
+                # Capture Screenshot on Error
+                try:
+                    screenshot_filename = f"error_user_{user_id}_{int(time.time())}.png"
+                    screenshot_path = os.path.join("logs", screenshot_filename)
+                    page.screenshot(path=screenshot_path, full_page=True)
+                    logger.info(f"[User {user_id}] Screenshot saved: {screenshot_path}")
+                    add_log(user_id, f"Screenshot saved: {screenshot_filename}")
+                except Exception as screenshot_error:
+                    logger.error(f"[User {user_id}] Screenshot failed: {screenshot_error}")
+                
+                # Send alert if cooldown passed
+                bot_instance = user_bots.get(str(user_id))
+                
+                # Determine user-friendly error reason
+                reason = "Unknown Error"
+                err_lower = error_msg.lower()
+                if "timeout" in err_lower:
+                    reason = "Page load timeout (slow server)"
+                elif "selector" in err_lower or "found" in err_lower:
+                    reason = "Element not found (UI changed or not loaded)"
+                elif "login" in err_lower or "session" in err_lower:
+                    reason = "Session expired or invalid"
+                elif "network" in err_lower:
+                    reason = "Network connectivity issue"
+
                 if should_send_error(user_id) and bot_instance:
-                    msg_rec = "⚠️ System encountered repeated issues. Recovering session..."
+                    message = (
+                        "🚨 *Automation Error*\n\n"
+                        f"📌 Campaign: {campaign_name}\n"
+                        f"❌ Reason: `{reason}`\n"
+                        f"🔍 Details: `{error_msg}`\n\n"
+                        "🔄 The system will automatically recover and continue."
+                    )
                     asyncio.run_coroutine_threadsafe(
-                        send_error_alert(bot_instance, user_id, msg_rec),
+                        send_error_alert(bot_instance, user_id, message),
                         bot_instance.loop
                     )
+                    mark_error_sent(user_id)
+
+                failure_count += 1
                 
+                # We do not stop the loop here. Just wait and try the same link again.
+                logger.warning(f"[User {user_id}] Minor failure ({failure_count}). Retrying next cycle.")
                 try:
-                    playwright, browser, page = recover_session(user_id, config, browser, playwright, logger)
-                    failure_count = 0 # Reset after recovery
-                except Exception as recovery_error:
-                    logger.error(f"[User {user_id}] Recovery failed completely. Stopping automation.")
-                    user_flags[user_id] = False
-                    break
-            else:
-                logger.warning(f"[User {user_id}] Minor failure. Retrying next cycle.")
+                    page.reload()
+                    page.wait_for_timeout(5000)
+                except:
+                    pass
+                continue
 
-        # Wait before processing the next link
-        if user_flags.get(user_id, False):
-            logger.info(f"[User {user_id}] Waiting {interval_minutes} minutes before next cycle...")
-            wait_with_interrupt(user_id, interval_minutes * 60)
+            # Wait before processing the next link
+            if user_flags.get(user_id, False):
+                # Calculate sleep time
+                elapsed = time.time() - start_time
+                sleep_time = max(0, (interval_minutes * 60) - elapsed)
+                logger.info(f"[User {user_id}] Waiting {int(sleep_time)} seconds before next cycle...")
+                wait_with_interrupt(user_id, int(sleep_time))
 
-    # Clean Shutdown
-    logger.info(f"[User {user_id}] Automation loop terminated. Cleaning up...")
-    add_log(user_id, "Automation loop terminated. Cleaning up...")
-    if browser:
-        try:
-            browser.close()
-        except:
-            pass
-    if playwright:
-        try:
-            playwright.stop()
-        except:
-            pass
-            
-    if user_id in user_status:
-        user_status[user_id]["running"] = False
+    finally:
+        # Clean Shutdown for this specific campaign handler
+        logger.info(f"[User {user_id}] Automation loop terminated. Cleaning up...")
+        add_log(user_id, "Automation loop terminated. Cleaning up...")
+        
+        release_campaign(campaign_name)
+        
+        # Ensure disk state matches memory state on crash/stop
+        from telegram_bot.state_manager import set_running
+        set_running(str(user_id), False)
+        
+        if context:
+            try:
+                context.close()
+            except:
+                pass
+                
+        if user_id in user_status:
+            user_status[user_id]["running"] = False

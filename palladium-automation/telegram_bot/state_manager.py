@@ -1,10 +1,23 @@
 import json
 import os
 import logging
+import threading
+import tempfile
+import shutil
+import time
 
 logger = logging.getLogger('palladium_automation.state_manager')
 
-DATA_FILE = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'data', 'users.json')
+DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'user_data.json')
+
+file_lock = threading.Lock()
+user_locks = {}
+
+def get_user_lock(user_id):
+    str_user_id = str(user_id)
+    if str_user_id not in user_locks:
+        user_locks[str_user_id] = threading.Lock()
+    return user_locks[str_user_id]
 
 # States
 WAITING_USERNAME = "WAITING_USERNAME"
@@ -16,55 +29,73 @@ COMPLETED = "COMPLETED"
 
 def load_users():
     """Loads user data from the JSON file."""
-    if not os.path.exists(DATA_FILE):
-        return {}
-    try:
-        with open(DATA_FILE, 'r') as f:
-            return json.load(f)
-    except json.JSONDecodeError:
-        logger.error(f"Error decoding {DATA_FILE}. Returning empty dict.")
-        return {}
-    except Exception as e:
-        logger.error(f"Error loading users: {e}")
-        return {}
+    with file_lock:
+        if not os.path.exists(DATA_FILE):
+            return {}
+        try:
+            with open(DATA_FILE, 'r') as f:
+                return json.load(f)
+        except json.JSONDecodeError:
+            logger.error(f"Error decoding {DATA_FILE}. Returning empty dict.")
+            return {}
+        except Exception as e:
+            logger.error(f"Error loading users: {e}")
+            return {}
+
+def backup_file():
+    """Creates a backup of the data file."""
+    if os.path.exists(DATA_FILE):
+        shutil.copy(DATA_FILE, DATA_FILE + ".backup")
 
 def save_users(data):
-    """Saves user data to the JSON file."""
-    try:
-        # Ensure directory exists
-        os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-        with open(DATA_FILE, 'w') as f:
-            json.dump(data, f, indent=2)
-    except Exception as e:
-        logger.error(f"Error saving users: {e}")
+    """Saves user data safely to the JSON file using atomic writes."""
+    with file_lock:
+        try:
+            # Ensure directory exists
+            os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
+            
+            backup_file()
+            
+            with tempfile.NamedTemporaryFile("w", delete=False) as tmp:
+                json.dump(data, tmp, indent=4)
+                temp_name = tmp.name
+                
+            os.replace(temp_name, DATA_FILE)
+            logger.info("Successfully saved user data.")
+        except Exception as e:
+            logger.error(f"Error saving users: {e}")
 
 def get_user(user_id):
     """Gets data for a specific user. Initializes if not exists."""
-    users = load_users()
-    str_user_id = str(user_id)
-    if str_user_id not in users:
-        users[str_user_id] = {
-            "state": None,
-            "username": "",
-            "password": "",
-            "campaign": "",
-            "links": [],
-            "interval": 10,
-            "running": False,
-            "current_index": 0
-        }
-        save_users(users)
-    return users[str_user_id]
+    with get_user_lock(user_id):
+        users = load_users()
+        str_user_id = str(user_id)
+        if str_user_id not in users:
+            users[str_user_id] = {
+                "state": None,
+                "username": "",
+                "password": "",
+                "campaign": "",
+                "links": [],
+                "interval": 10,
+                "running": False,
+                "current_index": 0,
+                "last_updated": time.time()
+            }
+            save_users(users)
+        return users[str_user_id]
 
 def update_user(user_id, new_data):
     """Updates specific fields for a user."""
-    users = load_users()
-    str_user_id = str(user_id)
-    if str_user_id not in users:
-        users[str_user_id] = {}
-    
-    users[str_user_id].update(new_data)
-    save_users(users)
+    with get_user_lock(user_id):
+        users = load_users()
+        str_user_id = str(user_id)
+        if str_user_id not in users:
+            users[str_user_id] = {}
+        
+        users[str_user_id].update(new_data)
+        users[str_user_id]["last_updated"] = time.time()
+        save_users(users)
 
 def set_state(user_id, state):
     """Sets the current state for a user."""

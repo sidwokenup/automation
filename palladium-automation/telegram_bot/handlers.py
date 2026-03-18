@@ -8,6 +8,25 @@ import time
 # Set up logger for handlers
 logger = logging.getLogger('palladium_automation.telegram')
 
+async def users_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the /users command to view active users."""
+    user = update.effective_user
+    logger.info(f"User {user.id} ({user.username}) issued /users command.")
+    
+    users_data = state_manager.load_users()
+    active_users = []
+    
+    for uid, u_data in users_data.items():
+        if u_data.get("running"):
+            campaign = u_data.get("campaign", "Unknown")
+            active_users.append(f"👤 `{uid}` | 📌 `{campaign}`")
+            
+    if not active_users:
+        await update.message.reply_text("📉 No active automations running right now.")
+    else:
+        response = "🚀 **Active Users:**\n\n" + "\n".join(active_users)
+        await update.message.reply_text(response, parse_mode='Markdown')
+
 async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /start command."""
     user = update.effective_user

@@ -23,6 +23,15 @@ def launch_browser():
     page = context.new_page()
     return playwright, browser, page
 
+def retry_action(action, retries=3):
+    """Retries a given action function multiple times."""
+    for attempt in range(retries):
+        try:
+            return action()
+        except Exception as e:
+            if attempt == retries - 1:
+                raise e
+            time.sleep(3)
 def login(page, username, password):
     """
     Logs into the website.
@@ -79,7 +88,7 @@ def ensure_campaign_page(page):
     current_url = page.url
     if "campaign-page" not in current_url or "change" in current_url:
         logger.info("Not on campaign dashboard. Navigating...")
-        navigate_to_campaigns(page)
+        retry_action(lambda: navigate_to_campaigns(page))
     else:
         logger.info("Already on campaign dashboard.")
 
@@ -90,7 +99,40 @@ def navigate_to_campaigns(page):
     logger.info("Navigating to campaign dashboard...")
     page.goto("https://next.palladium.expert/pages/campaign-page")
     page.wait_for_load_state('networkidle')
+    page.wait_for_timeout(2000)
     logger.info("Campaign dashboard loaded.")
+
+def check_campaign_exists(page, campaign_name):
+    """
+    Checks if a campaign exists on the page without throwing an error.
+    """
+    logger.info(f"Checking existence of campaign: {campaign_name}")
+    try:
+        page.wait_for_load_state("networkidle")
+        page.wait_for_selector("table", timeout=15000)
+        page.wait_for_timeout(2000)
+        
+        # Check if row exists
+        row = page.locator("tr", has_text=campaign_name)
+        count = row.count()
+        
+        if count > 0:
+            logger.info(f"Campaign '{campaign_name}' found.")
+            return True
+        else:
+            # Fallback search
+            rows = page.locator("tr").all()
+            for r in rows:
+                if campaign_name.lower() in r.inner_text().lower():
+                    logger.info(f"Campaign '{campaign_name}' found via fallback search.")
+                    return True
+            
+            logger.warning(f"Campaign '{campaign_name}' NOT found.")
+            return False
+            
+    except Exception as e:
+        logger.error(f"Error checking campaign existence: {e}")
+        return False
 
 def open_campaign(page, campaign_name):
     """
@@ -98,52 +140,85 @@ def open_campaign(page, campaign_name):
     """
     logger.info(f"Searching for campaign: {campaign_name}")
     
-    try:
-        # Wait for the campaign list to be visible. 
-        page.wait_for_selector(f"text={campaign_name}", timeout=10000)
-        
-        # 1. Find the row containing the campaign name
-        row = page.locator("tr").filter(has_text=campaign_name)
-        
-        if row.count() == 0:
-            logger.warning(f"Could not find a table row with text '{campaign_name}'. Checking generic containers...")
-            row = page.locator("div").filter(has_text=campaign_name).first
+    max_retries = 3
+    for attempt in range(max_retries):
+        try:
+            logger.info(f"Retry attempt: {attempt + 1}")
+            page.wait_for_load_state("networkidle")
+            page.wait_for_selector("table", timeout=20000)
+            page.wait_for_timeout(3000)
             
-        if row.count() > 0:
-            logger.info("Found campaign row/container.")
+            row = page.locator("tr", has_text=campaign_name).first
             
-            # 2. Find all buttons in the row
-            buttons = row.locator("button")
-            button_count = buttons.count()
-            logger.info(f"Found {button_count} buttons in the campaign row.")
-            
-            # 3. Click the correct button (Edit button is expected to be at index 4)
-            target_index = 4
-            if button_count > target_index:
-                logger.info(f"Clicking button at index {target_index} (Edit button)...")
-                buttons.nth(target_index).click()
-            else:
-                logger.error(f"Not enough buttons in row. Expected > {target_index}, found {button_count}.")
+            if row.count() > 0:
+                row.wait_for(timeout=10000)
+                logger.info("Found campaign row.")
                 
-                # Attempt fallback: Look for a button with an SVG (icon) if index fails
-                logger.info("Attempting fallback: searching for button with SVG icon...")
-                svg_buttons = row.locator("button:has(svg)")
-                if svg_buttons.count() > 0:
-                    logger.info("Found button with SVG, clicking the last one (often actions are at the end)...")
-                    svg_buttons.last.click()
+                # 2. Find all buttons in the row
+                buttons = row.locator("button")
+                button_count = buttons.count()
+                logger.info(f"Found {button_count} buttons in the campaign row.")
+                
+                # 3. Click the correct button (Edit button is expected to be at index 4)
+                target_index = 4
+                if button_count > target_index:
+                    logger.info(f"Clicking button at index {target_index} (Edit button)...")
+                    buttons.nth(target_index).click()
                 else:
-                    raise Exception("Could not find Edit button by index or icon.")
+                    logger.error(f"Not enough buttons in row. Expected > {target_index}, found {button_count}.")
+                    
+                    # Attempt fallback: Look for a button with an SVG (icon) if index fails
+                    logger.info("Attempting fallback: searching for button with SVG icon...")
+                    svg_buttons = row.locator("button:has(svg)")
+                    if svg_buttons.count() > 0:
+                        logger.info("Found button with SVG, clicking the last one (often actions are at the end)...")
+                        svg_buttons.last.click()
+                    else:
+                        raise Exception("Could not find Edit button by index or icon.")
+                break # Exit retry loop on success
+            else:
+                # OPTIONAL (FALLBACK SEARCH)
+                logger.info("Direct row selector failed. Attempting fallback search...")
+                rows = page.locator("tr").all()
+                found = False
+                for r in rows:
+                    if campaign_name.lower() in r.inner_text().lower():
+                        row = r
+                        found = True
+                        break
+                
+                if found:
+                    logger.info("Found campaign row via fallback search.")
+                    buttons = row.locator("button")
+                    button_count = buttons.count()
+                    target_index = 4
+                    if button_count > target_index:
+                        buttons.nth(target_index).click()
+                    else:
+                        svg_buttons = row.locator("button:has(svg)")
+                        if svg_buttons.count() > 0:
+                            svg_buttons.last.click()
+                        else:
+                            raise Exception("Could not find Edit button in fallback row.")
+                    break
+                else:
+                    raise Exception(f"Could not find any row with text '{campaign_name}'")
+                    
+        except Exception as e:
+            logger.warning(f"Attempt {attempt + 1} failed: {e}")
+            if attempt == max_retries - 1:
+                raise Exception("Campaign not found after retries")
+            
+            page.reload()
+            page.wait_for_timeout(5000)
 
-        else:
-             raise Exception(f"Could not find any row or container with text '{campaign_name}'")
-
-        # Wait for navigation
+    # Wait for navigation
+    try:
         logger.info("Waiting for campaign settings page to load...")
         page.wait_for_url("**/change/**", timeout=15000)
         logger.info("Campaign settings page loaded.")
-        
     except Exception as e:
-        logger.error(f"Error finding or opening campaign: {e}")
+        logger.error(f"Error waiting for campaign settings page: {e}")
         raise
 
 def update_target_link(page, new_link):
@@ -217,10 +292,12 @@ def update_target_link(page, new_link):
         # 6. Click Save
         logger.info("Clicking Save button...")
         save_button.click()
+        page.wait_for_timeout(3000)
         
         # 7. Wait for Successful Save (Redirect to campaign dashboard)
         logger.info("Waiting for save confirmation and redirect...")
         page.wait_for_url("**/campaign-page", timeout=15000)
+        page.wait_for_timeout(2000)
         
         # 8. Confirm Success
         logger.info("Link updated and saved successfully. Returned to dashboard.")
