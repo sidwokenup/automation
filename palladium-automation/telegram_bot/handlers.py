@@ -63,6 +63,7 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     total_links = status.get("total_links", 0)
     current_link = status.get("current_link", "None")
     last_updated = status.get("last_updated")
+    interval = user_data.get("interval", 10)
     
     # 4. Construct response
     if running:
@@ -83,13 +84,15 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
             f"🔗 Current Link: `{current_link}`\n\n"
             f"📊 Total Links: {total_links}\n"
             f"⏱ Last Updated: {time_msg}\n\n"
-            "🔄 Next Update: in ~10 minutes"
+            f"🔄 Next Update: in ~{interval} minutes\n"
+            f"⏳ Current Interval: {interval} minutes"
         )
     else:
         msg = (
             "🛑 Automation Status: STOPPED\n\n"
             f"📌 Campaign: {campaign}\n"
-            f"📊 Total Links: {total_links}\n\n"
+            f"📊 Total Links: {total_links}\n"
+            f"⏳ Current Interval: {interval} minutes\n\n"
             "Use /run to start again"
         )
         
@@ -249,7 +252,26 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
             
         logger.info(f"User {user_id} provided {len(links)} links.")
-        state_manager.update_user(user_id, {"links": links, "state": state_manager.COMPLETED})
+        state_manager.update_user(user_id, {"links": links, "state": state_manager.WAITING_INTERVAL})
+        
+        await update.message.reply_text("Enter interval in minutes (e.g., 10):")
+
+    # WAITING_INTERVAL
+    elif state == state_manager.WAITING_INTERVAL:
+        if not text:
+            await update.message.reply_text("❌ Invalid input. Please try again.\nEnter interval in minutes (e.g., 10):")
+            return
+            
+        try:
+            interval = int(text)
+            if interval < 1:
+                raise ValueError("Interval must be at least 1")
+        except ValueError:
+            await update.message.reply_text("❌ Invalid input. Please enter a valid number (minimum 1):\nEnter interval in minutes (e.g., 10):")
+            return
+            
+        logger.info(f"User {user_id} provided interval: {interval} minutes.")
+        state_manager.update_user(user_id, {"interval": interval, "state": state_manager.COMPLETED})
         
         completion_msg = (
             "✅ Setup completed successfully!\n\n"

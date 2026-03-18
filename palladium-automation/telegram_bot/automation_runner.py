@@ -153,7 +153,7 @@ def automation_loop(user_id, config, logger):
             user_status[user_id]["running"] = False
         return
 
-    interval_minutes = config.get("interval_minutes", 10)
+    interval_minutes = config.get("interval", 10)
     
     playwright = None
     browser = None

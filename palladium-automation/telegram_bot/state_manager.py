@@ -11,6 +11,7 @@ WAITING_USERNAME = "WAITING_USERNAME"
 WAITING_PASSWORD = "WAITING_PASSWORD"
 WAITING_CAMPAIGN = "WAITING_CAMPAIGN"
 WAITING_LINKS = "WAITING_LINKS"
+WAITING_INTERVAL = "WAITING_INTERVAL"
 COMPLETED = "COMPLETED"
 
 def load_users():
@@ -48,6 +49,7 @@ def get_user(user_id):
             "password": "",
             "campaign": "",
             "links": [],
+            "interval": 10,
             "running": False,
             "current_index": 0
         }
