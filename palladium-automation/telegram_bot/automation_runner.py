@@ -7,6 +7,42 @@ from telegram_bot.state_manager import get_current_index, update_current_index
 
 import asyncio
 
+def recover_running_automations():
+    """Recovers automations that were running before a shutdown."""
+    from telegram_bot.state_manager import load_users
+    
+    logger = logging.getLogger('palladium_automation.runner')
+    users = load_users()
+    
+    logger.info(f"Checking {len(users)} users for auto-recovery...")
+    
+    for user_id, data in users.items():
+        if data.get("running"):
+            str_uid = str(user_id)
+            
+            # Safety: do NOT start duplicate thread if already active in this process
+            if str_uid in active_threads:
+                thread = active_threads[str_uid]
+                if thread.is_alive():
+                    logger.info(f"User {user_id} automation already active. Skipping recovery.")
+                    continue
+                else:
+                    # Clean dead thread reference
+                    del active_threads[str_uid]
+            
+            logger.info(f"Recovering automation for user {user_id}...")
+            
+            try:
+                # Re-launch automation thread
+                # Note: We don't have the bot instance here during startup easily, 
+                # but send_telegram_message handles None gracefully.
+                # Alerts won't work until the thread gets a bot instance, 
+                # but the loop will run.
+                start_automation(user_id, data, logger, bot_instance=None)
+                logger.info(f"Recovered automation started successfully for {user_id}")
+            except Exception as e:
+                logger.error(f"Recovery failed for {user_id}: {e}")
+
 # Campaign locks
 active_campaigns = set()
 campaign_lock = threading.Lock()
@@ -24,6 +60,7 @@ def release_campaign(campaign):
 
 # Global storage for tracking user threads and flags
 user_threads = {}
+active_threads = {}  # Track threads to prevent duplicates
 user_flags = {}
 user_status = {}
 user_logs = {}
@@ -32,16 +69,22 @@ user_error_state = {} # Track error state per user: {user_id: {"active": bool, "
 ERROR_COOLDOWN = 300 # 5 minutes
 MAX_ERRORS = 5 # Maximum consecutive errors before stopping automation
 
+async def send_telegram_message(bot_instance, user_id, text, photo_path=None):
+    """Safely sends a message or photo via Telegram without crashing the thread."""
+    try:
+        if not bot_instance:
+            return
+        if photo_path and os.path.exists(photo_path):
+            with open(photo_path, "rb") as photo:
+                await bot_instance.send_photo(chat_id=user_id, photo=photo, caption=text)
+        else:
+            await bot_instance.send_message(chat_id=user_id, text=text)
+    except Exception as e:
+        logger.error(f"Telegram send failed: {e}")
+
 async def send_error_alert(bot_instance, user_id, message):
     """Sends an error alert to the user via Telegram."""
-    try:
-        if bot_instance:
-            await bot_instance.send_message(
-                chat_id=user_id,
-                text=message
-            )
-    except Exception as e:
-        print(f"Failed to send Telegram alert: {e}")
+    await send_telegram_message(bot_instance, user_id, message)
 
 def should_send_error(user_id):
     """Checks if an error alert should be sent based on cooldown."""
@@ -98,6 +141,25 @@ def start_automation(user_id, config, logger, bot_instance=None):
     """Starts the automation loop for a user in a separate thread."""
     str_user_id = str(user_id)
     
+    # Prevent Duplicate Start (CRITICAL)
+    from telegram_bot.state_manager import load_users, save_users
+    user_data = load_users()
+    
+    # Check JSON state
+    if user_data.get(str_user_id, {}).get("running"):
+        logger.warning(f"Automation already running for user {user_id} (state check)")
+        return False
+
+    # Check in-memory thread
+    if str_user_id in active_threads:
+        thread = active_threads[str_user_id]
+        if thread.is_alive():
+            logger.warning(f"Automation already running for user {user_id} (thread active)")
+            return False
+        else:
+            # Clean dead thread
+            del active_threads[str_user_id]
+
     # Prevent Duplicate Campaign Usage globally using centralized lock
     campaign_name = config.get("campaign")
     if not acquire_campaign(campaign_name):
@@ -125,17 +187,22 @@ def start_automation(user_id, config, logger, bot_instance=None):
     }
     
     # Update running status in disk
-    from telegram_bot.state_manager import load_users, save_users
-    user_data = load_users()
+    # user_data was loaded above
     if str_user_id in user_data:
         user_data[str_user_id]["running"] = True
         user_data[str_user_id]["state"] = "RUNNING"
         save_users(user_data)
+    elif str_user_id not in user_data: # Should exist, but safety check
+         # This case should ideally be handled by setup flow, but just in case
+         pass
     
     # Create and start thread
     thread = threading.Thread(target=automation_loop, args=(str_user_id, config, logger), daemon=True)
     user_threads[str_user_id] = thread
     thread.start()
+    
+    # Register Thread
+    active_threads[str_user_id] = thread
     
     logger.info(f"Started automation thread for user {user_id}")
     add_log(str_user_id, "Automation thread started")
@@ -144,6 +211,10 @@ def start_automation(user_id, config, logger, bot_instance=None):
 def stop_automation(user_id):
     """Stops the automation loop for a user."""
     str_user_id = str(user_id)
+    
+    # Cleanup on Stop
+    if str_user_id in active_threads:
+        del active_threads[str_user_id]
     
     # Release campaign from lock
     from telegram_bot.state_manager import get_user
@@ -233,10 +304,9 @@ def automation_loop(user_id, config, logger):
             from telegram_bot.state_manager import load_users, save_users
             users_data = load_users()
             str_uid = str(user_id)
-            if str_uid in users_data and not users_data[str_uid].get("running"):
-                users_data[str_uid]["running"] = True
-                users_data[str_uid]["state"] = "RUNNING"
-                save_users(users_data)
+            if str_uid not in users_data or not users_data[str_uid].get("running"):
+                break
+
                 
             # Validate index (e.g. if user updated links and removed some)
             if link_index >= len(links):
@@ -279,11 +349,22 @@ def automation_loop(user_id, config, logger):
                 from automation.browser import retry_action, check_campaign_exists
                 
                 # Pre-check if campaign exists before attempting to open it
-                if not check_campaign_exists(page, campaign_name):
-                    logger.warning(f"[User {user_id}] Campaign not found during pre-check: {campaign_name}")
+                campaign_found = False
+                for attempt in range(3):
+                    if check_campaign_exists(page, campaign_name):
+                        campaign_found = True
+                        break
+                    else:
+                        logger.warning(f"[User {user_id}] Campaign check attempt {attempt+1} failed. Retrying...")
+                        page.reload()
+                        page.wait_for_timeout(5000)
+
+                if not campaign_found:
+                    logger.warning(f"[User {user_id}] Campaign not found after retries: {campaign_name}")
                     add_log(user_id, f"Error: Campaign '{campaign_name}' not found.")
                     
                     # Capture Screenshot on Pre-Check Error
+                    screenshot_path = None
                     try:
                         screenshot_filename = f"precheck_error_{user_id}_{int(time.time())}.png"
                         screenshot_path = os.path.join("logs", screenshot_filename)
@@ -292,17 +373,25 @@ def automation_loop(user_id, config, logger):
                         add_log(user_id, f"Screenshot saved: {screenshot_filename}")
                     except Exception as screenshot_error:
                         logger.error(f"[User {user_id}] Pre-check screenshot failed: {screenshot_error}")
+                        screenshot_path = None
                     
                     bot_instance = user_bots.get(str(user_id))
                     if bot_instance:
-                        msg = f"❌ *Automation Stopped*\n\nCampaign '{campaign_name}' could not be found.\nPlease check the name and try again."
+                        msg = f"❌ *Automation Stopped*\n\nCampaign '{campaign_name}' could not be found after multiple retries.\nPlease check the name and try again."
                         asyncio.run_coroutine_threadsafe(
-                            send_error_alert(bot_instance, user_id, msg),
+                            send_telegram_message(bot_instance, user_id, msg, photo_path=screenshot_path),
                             bot_instance.loop
                         )
                     
+                    from telegram_bot.state_manager import load_users, save_users
+                    users_data = load_users()
+                    if str(user_id) in users_data:
+                        users_data[str(user_id)]["running"] = False
+                        users_data[str(user_id)]["state"] = "ERROR"
+                        save_users(users_data)
+                        
                     stop_automation(user_id)
-                    break
+                    continue
 
                 retry_action(lambda: open_campaign(page, campaign_name))
                 add_log(user_id, f"Opened campaign: {campaign_name}")
@@ -345,6 +434,18 @@ def automation_loop(user_id, config, logger):
                 logger.error(f"[User {user_id}] Recoverable error during automation cycle: {e}. Error count: {error_count}/{MAX_ERRORS}")
                 add_log(user_id, f"Recoverable error: {error_msg} (Count: {error_count})")
                 
+                # Capture Screenshot on Error
+                screenshot_path = None
+                try:
+                    screenshot_filename = f"error_user_{user_id}_{int(time.time())}.png"
+                    screenshot_path = os.path.join("logs", screenshot_filename)
+                    page.screenshot(path=screenshot_path, full_page=True)
+                    logger.info(f"[User {user_id}] Screenshot saved: {screenshot_path}")
+                    add_log(user_id, f"Screenshot saved: {screenshot_filename}")
+                except Exception as screenshot_error:
+                    logger.error(f"[User {user_id}] Screenshot failed: {screenshot_error}")
+                    screenshot_path = None
+                
                 # Check for Max Error Limit
                 if error_count >= MAX_ERRORS:
                     logger.error(f"[User {user_id}] Max error limit reached ({MAX_ERRORS}). Stopping automation to prevent infinite loop.")
@@ -358,7 +459,7 @@ def automation_loop(user_id, config, logger):
                             "Please check your campaign settings and try again."
                         )
                         asyncio.run_coroutine_threadsafe(
-                            send_error_alert(bot_instance, user_id, stop_msg),
+                            send_telegram_message(bot_instance, user_id, stop_msg, photo_path=screenshot_path),
                             bot_instance.loop
                         )
                     
@@ -370,17 +471,7 @@ def automation_loop(user_id, config, logger):
                         save_users(users_data)
                         
                     stop_automation(user_id)
-                    break
-
-                # Capture Screenshot on Error
-                try:
-                    screenshot_filename = f"error_user_{user_id}_{int(time.time())}.png"
-                    screenshot_path = os.path.join("logs", screenshot_filename)
-                    page.screenshot(path=screenshot_path, full_page=True)
-                    logger.info(f"[User {user_id}] Screenshot saved: {screenshot_path}")
-                    add_log(user_id, f"Screenshot saved: {screenshot_filename}")
-                except Exception as screenshot_error:
-                    logger.error(f"[User {user_id}] Screenshot failed: {screenshot_error}")
+                    continue
                 
                 # Send alert if cooldown passed
                 bot_instance = user_bots.get(str(user_id))
@@ -406,7 +497,7 @@ def automation_loop(user_id, config, logger):
                         "🔄 The system will automatically recover and continue."
                     )
                     asyncio.run_coroutine_threadsafe(
-                        send_error_alert(bot_instance, user_id, message),
+                        send_telegram_message(bot_instance, user_id, message, photo_path=screenshot_path),
                         bot_instance.loop
                     )
                     mark_error_sent(user_id)
@@ -434,6 +525,11 @@ def automation_loop(user_id, config, logger):
         # Clean Shutdown for this specific campaign handler
         logger.info(f"[User {user_id}] Automation loop terminated. Cleaning up...")
         add_log(user_id, "Automation loop terminated. Cleaning up...")
+        
+        # Cleanup on Crash / Exit
+        str_uid = str(user_id)
+        if str_uid in active_threads:
+            del active_threads[str_uid]
         
         release_campaign(campaign_name)
         

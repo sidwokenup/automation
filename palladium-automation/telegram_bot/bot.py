@@ -30,19 +30,10 @@ def main():
         return
 
     # Auto Recovery on Startup
-    from telegram_bot.state_manager import load_users, save_users
-    from telegram_bot.automation_runner import active_campaigns, campaign_lock
+    from telegram_bot.automation_runner import recover_running_automations
     logger.info("Running auto-recovery on user states...")
-    users = load_users()
-    recovery_needed = False
-    for uid, user in users.items():
-        if user.get("running"):
-            logger.warning(f"Resetting stuck session for user {uid}")
-            user["running"] = False
-            recovery_needed = True
-    if recovery_needed:
-        save_users(users)
-        logger.info("Auto-recovery completed.")
+    recover_running_automations()
+    logger.info("Auto-recovery completed.")
 
     # Initialize Global Session Manager
     from telegram_bot.session_manager import SessionManager

@@ -5,12 +5,16 @@ import threading
 import tempfile
 import shutil
 import time
+from filelock import FileLock
 
 logger = logging.getLogger('palladium_automation.state_manager')
 
 DATA_FILE = os.path.join(os.path.dirname(os.path.abspath(__file__)), 'data', 'user_data.json')
+LOCK_FILE = DATA_FILE + ".lock"
 
-file_lock = threading.Lock()
+file_lock = threading.Lock() # Internal thread lock
+# External file lock is handled by FileLock
+
 user_locks = {}
 
 def get_user_lock(user_id):
@@ -29,41 +33,54 @@ COMPLETED = "COMPLETED"
 
 def load_users():
     """Loads user data from the JSON file."""
+    # Use both thread lock and file lock for maximum safety
     with file_lock:
-        if not os.path.exists(DATA_FILE):
-            return {}
+        lock = FileLock(LOCK_FILE)
         try:
-            with open(DATA_FILE, 'r') as f:
-                return json.load(f)
-        except json.JSONDecodeError:
-            logger.error(f"Error decoding {DATA_FILE}. Returning empty dict.")
-            return {}
+            with lock.acquire(timeout=10):
+                if not os.path.exists(DATA_FILE):
+                    return {}
+                try:
+                    with open(DATA_FILE, 'r', encoding='utf-8') as f:
+                        return json.load(f)
+                except (json.JSONDecodeError, UnicodeDecodeError) as e:
+                    logger.error(f"Error decoding {DATA_FILE}: {e}. Attempting recovery.")
+                    
+                    # Backup corrupted file
+                    try:
+                        if os.path.exists(DATA_FILE):
+                            shutil.copy(DATA_FILE, DATA_FILE + ".corrupt")
+                    except Exception as backup_error:
+                        logger.error(f"Failed to backup corrupted file: {backup_error}")
+        
+                    # Return empty dict to prevent crash, caller should handle re-init if needed
+                    return {}
         except Exception as e:
-            logger.error(f"Error loading users: {e}")
+            logger.error(f"Error loading users (Lock/File issue): {e}")
             return {}
-
-def backup_file():
-    """Creates a backup of the data file."""
-    if os.path.exists(DATA_FILE):
-        shutil.copy(DATA_FILE, DATA_FILE + ".backup")
 
 def save_users(data):
     """Saves user data safely to the JSON file using atomic writes."""
     with file_lock:
+        lock = FileLock(LOCK_FILE)
         try:
-            # Ensure directory exists
-            os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
-            
-            backup_file()
-            
-            with tempfile.NamedTemporaryFile("w", delete=False) as tmp:
-                json.dump(data, tmp, indent=4)
-                temp_name = tmp.name
+            with lock.acquire(timeout=10):
+                # Ensure directory exists
+                os.makedirs(os.path.dirname(DATA_FILE), exist_ok=True)
                 
-            os.replace(temp_name, DATA_FILE)
-            logger.info("Successfully saved user data.")
+                backup_file()
+                
+                # Use 'w' mode with utf-8 encoding for safety
+                # Atomic write: write to temp, then rename
+                with tempfile.NamedTemporaryFile("w", delete=False, encoding='utf-8') as tmp:
+                    json.dump(data, tmp, indent=4)
+                    temp_name = tmp.name
+                    
+                # Replace is atomic on POSIX, usually safe on Windows too
+                os.replace(temp_name, DATA_FILE)
+                logger.info("Successfully saved user data.")
         except Exception as e:
-            logger.error(f"Error saving users: {e}")
+            logger.error(f"Error saving users (Lock/File issue): {e}")
 
 def get_user(user_id):
     """Gets data for a specific user. Initializes if not exists."""
