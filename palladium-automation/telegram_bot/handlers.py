@@ -146,11 +146,19 @@ async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /setup command to start the configuration flow."""
     user = update.effective_user
+    user_id = str(user.id)
     logger.info(f"User {user.id} ({user.username}) started setup.")
     
-    # Initialize/Reset user state
-    state_manager.get_user(user.id) 
-    state_manager.set_state(user.id, state_manager.WAITING_USERNAME)
+    from telegram_bot.state_manager import load_users, save_users
+    user_data = load_users()
+    
+    if user_id not in user_data:
+        user_data[user_id] = {}
+        
+    user_data[user_id]["state"] = state_manager.WAITING_USERNAME
+    user_data[user_id]["running"] = False
+    
+    save_users(user_data)
     
     await update.message.reply_text("Let's configure your automation.\n\nEnter your username:")
 
@@ -208,10 +216,16 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user = update.effective_user
     text = update.message.text.strip()
     user_id = user.id
+    str_user_id = str(user_id)
     
-    # Get current user state
-    user_data = state_manager.get_user(user_id)
-    state = user_data.get("state")
+    # load_users() is called correctly before reading state
+    users_data = state_manager.load_users()
+    
+    if str_user_id not in users_data:
+        return
+        
+    user_state = users_data[str_user_id]
+    state = user_state.get("state")
     
     if not state or state == state_manager.COMPLETED:
         # Ignore messages if not in setup flow
@@ -224,8 +238,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
             
         logger.info(f"User {user_id} provided username.")
-        state_manager.update_user(user_id, {"username": text, "state": state_manager.WAITING_PASSWORD})
+        
+        users_data = state_manager.load_users()
+        users_data[str_user_id]["username"] = text
+        users_data[str_user_id]["state"] = state_manager.WAITING_PASSWORD
+        state_manager.save_users(users_data)
+        
+        logger.info(f"User {user_id} state: {users_data[str_user_id]['state']}")
         await update.message.reply_text("Enter your password:")
+        return
 
     # WAITING_PASSWORD
     elif state == state_manager.WAITING_PASSWORD:
@@ -234,9 +255,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
             
         logger.info(f"User {user_id} provided password.")
-        # Security Note: Password is saved in plain text in json as per requirements. 
-        # In a real production environment, this should be encrypted.
-        state_manager.update_user(user_id, {"password": text, "state": state_manager.WAITING_CAMPAIGN})
+        
+        users_data = state_manager.load_users()
+        users_data[str_user_id]["password"] = text
+        users_data[str_user_id]["state"] = state_manager.WAITING_CAMPAIGN
+        state_manager.save_users(users_data)
+        
+        logger.info(f"User {user_id} state: {users_data[str_user_id]['state']}")
         
         # Delete the message containing the password for security
         try:
@@ -246,6 +271,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             logger.warning(f"Could not delete password message: {e}")
             
         await update.message.reply_text("Enter campaign name (e.g., CAMP-1):")
+        return
 
     # WAITING_CAMPAIGN
     elif state == state_manager.WAITING_CAMPAIGN:
@@ -254,8 +280,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
             
         logger.info(f"User {user_id} provided campaign: {text}")
-        state_manager.update_user(user_id, {"campaign": text, "state": state_manager.WAITING_LINKS})
+        
+        users_data = state_manager.load_users()
+        users_data[str_user_id]["campaign"] = text
+        users_data[str_user_id]["state"] = state_manager.WAITING_LINKS
+        state_manager.save_users(users_data)
+        
+        logger.info(f"User {user_id} state: {users_data[str_user_id]['state']}")
         await update.message.reply_text("Enter links (comma-separated):")
+        return
 
     # WAITING_LINKS
     elif state == state_manager.WAITING_LINKS:
@@ -271,9 +304,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
             
         logger.info(f"User {user_id} provided {len(links)} links.")
-        state_manager.update_user(user_id, {"links": links, "state": state_manager.WAITING_INTERVAL})
         
+        users_data = state_manager.load_users()
+        users_data[str_user_id]["links"] = links
+        users_data[str_user_id]["state"] = state_manager.WAITING_INTERVAL
+        state_manager.save_users(users_data)
+        
+        logger.info(f"User {user_id} state: {users_data[str_user_id]['state']}")
         await update.message.reply_text("Enter interval in minutes (e.g., 10):")
+        return
 
     # WAITING_INTERVAL
     elif state == state_manager.WAITING_INTERVAL:
@@ -290,7 +329,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             return
             
         logger.info(f"User {user_id} provided interval: {interval} minutes.")
-        state_manager.update_user(user_id, {"interval": interval, "state": state_manager.COMPLETED})
+        
+        users_data = state_manager.load_users()
+        users_data[str_user_id]["interval"] = interval
+        users_data[str_user_id]["state"] = state_manager.COMPLETED
+        state_manager.save_users(users_data)
+        
+        logger.info(f"User {user_id} state: {users_data[str_user_id]['state']}")
         
         completion_msg = (
             "✅ Setup completed successfully!\n\n"
@@ -298,3 +343,4 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Use /stop to stop automation"
         )
         await update.message.reply_text(completion_msg)
+        return
