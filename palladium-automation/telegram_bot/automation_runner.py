@@ -5,7 +5,7 @@ import os
 from automation.browser import launch_browser, login, navigate_to_campaigns, open_campaign, update_target_link, ensure_logged_in, ensure_campaign_page
 from telegram_bot.state_manager import get_current_index, update_current_index
 
-import asyncio
+# asyncio removed
 
 def recover_running_automations():
     """Recovers automations that were running before a shutdown."""
@@ -69,22 +69,29 @@ user_error_state = {} # Track error state per user: {user_id: {"active": bool, "
 ERROR_COOLDOWN = 300 # 5 minutes
 MAX_ERRORS = 5 # Maximum consecutive errors before stopping automation
 
-async def send_telegram_message(bot_instance, user_id, text, photo_path=None):
-    """Safely sends a message or photo via Telegram without crashing the thread."""
+from telegram import Bot
+
+def send_telegram_message(user_id, text, photo_path=None):
+    """Safely sends a message or photo via Telegram without crashing the thread (Synchronous)."""
     try:
-        if not bot_instance:
+        token = os.getenv("TELEGRAM_BOT_TOKEN")
+
+        if not token:
+            print("[ERROR] TELEGRAM_BOT_TOKEN not found in environment")
             return
+
+        bot = Bot(token=token)
         if photo_path and os.path.exists(photo_path):
             with open(photo_path, "rb") as photo:
-                await bot_instance.send_photo(chat_id=user_id, photo=photo, caption=text)
+                # Sync call
+                bot.send_photo(chat_id=user_id, photo=photo, caption=text)
         else:
-            await bot_instance.send_message(chat_id=user_id, text=text)
+            # Sync call
+            bot.send_message(chat_id=user_id, text=text)
     except Exception as e:
-        logger.error(f"Telegram send failed: {e}")
+        print(f"[ERROR] Telegram send failed: {e}")
 
-async def send_error_alert(bot_instance, user_id, message):
-    """Sends an error alert to the user via Telegram."""
-    await send_telegram_message(bot_instance, user_id, message)
+# Removed send_error_alert as it is no longer needed (async wrapper)
 
 def should_send_error(user_id):
     """Checks if an error alert should be sent based on cooldown."""
@@ -357,7 +364,8 @@ def automation_loop(user_id, config, logger):
                     else:
                         logger.warning(f"[User {user_id}] Campaign check attempt {attempt+1} failed. Retrying...")
                         page.reload()
-                        page.wait_for_timeout(5000)
+                        page.wait_for_load_state("networkidle")
+                        page.wait_for_timeout(7000)
 
                 if not campaign_found:
                     logger.warning(f"[User {user_id}] Campaign not found after retries: {campaign_name}")
@@ -375,13 +383,9 @@ def automation_loop(user_id, config, logger):
                         logger.error(f"[User {user_id}] Pre-check screenshot failed: {screenshot_error}")
                         screenshot_path = None
                     
-                    bot_instance = user_bots.get(str(user_id))
-                    if bot_instance:
-                        msg = f"❌ *Automation Stopped*\n\nCampaign '{campaign_name}' could not be found after multiple retries.\nPlease check the name and try again."
-                        asyncio.run_coroutine_threadsafe(
-                            send_telegram_message(bot_instance, user_id, msg, photo_path=screenshot_path),
-                            bot_instance.loop
-                        )
+                    # Send critical error alert (Sync)
+                    msg = f"❌ *Automation Stopped*\n\nCampaign '{campaign_name}' could not be found after multiple retries.\nPlease check the name and try again."
+                    send_telegram_message(user_id, msg, photo_path=screenshot_path)
                     
                     from telegram_bot.state_manager import load_users, save_users
                     users_data = load_users()
@@ -415,12 +419,8 @@ def automation_loop(user_id, config, logger):
                 add_log(user_id, f"Next index will be: {link_index}")
                 
                 # Mark error as resolved if it was active
-                bot_instance = user_bots.get(str(user_id))
-                if mark_error_resolved(user_id) and bot_instance:
-                     asyncio.run_coroutine_threadsafe(
-                        send_error_alert(bot_instance, user_id, "✅ *Automation Resumed*\n\nSystem has recovered and automation is running normally."),
-                        bot_instance.loop
-                    )
+                if mark_error_resolved(user_id):
+                     send_telegram_message(user_id, "✅ *Automation Resumed*\n\nSystem has recovered and automation is running normally.")
     
                 # Save user data to disk explicitly after status/index change
                 from telegram_bot.state_manager import get_user, save_users, load_users
@@ -451,17 +451,12 @@ def automation_loop(user_id, config, logger):
                     logger.error(f"[User {user_id}] Max error limit reached ({MAX_ERRORS}). Stopping automation to prevent infinite loop.")
                     add_log(user_id, "❌ Max error limit reached. Stopping automation.")
                     
-                    bot_instance = user_bots.get(str(user_id))
-                    if bot_instance:
-                        stop_msg = (
-                            "❌ *Automation Stopped*\n\n"
-                            f"Reason: Reached maximum limit of {MAX_ERRORS} consecutive errors.\n"
-                            "Please check your campaign settings and try again."
-                        )
-                        asyncio.run_coroutine_threadsafe(
-                            send_telegram_message(bot_instance, user_id, stop_msg, photo_path=screenshot_path),
-                            bot_instance.loop
-                        )
+                    stop_msg = (
+                        "❌ *Automation Stopped*\n\n"
+                        f"Reason: Reached maximum limit of {MAX_ERRORS} consecutive errors.\n"
+                        "Please check your campaign settings and try again."
+                    )
+                    send_telegram_message(user_id, stop_msg, photo_path=screenshot_path)
                     
                     from telegram_bot.state_manager import load_users, save_users
                     users_data = load_users()
@@ -474,7 +469,6 @@ def automation_loop(user_id, config, logger):
                     continue
                 
                 # Send alert if cooldown passed
-                bot_instance = user_bots.get(str(user_id))
                 
                 # Determine user-friendly error reason
                 reason = "Unknown Error"
@@ -488,7 +482,7 @@ def automation_loop(user_id, config, logger):
                 elif "network" in err_lower:
                     reason = "Network connectivity issue"
 
-                if should_send_error(user_id) and bot_instance:
+                if should_send_error(user_id):
                     message = (
                         "🚨 *Automation Error*\n\n"
                         f"📌 Campaign: {campaign_name}\n"
@@ -496,10 +490,7 @@ def automation_loop(user_id, config, logger):
                         f"🔍 Details: `{error_msg}`\n\n"
                         "🔄 The system will automatically recover and continue."
                     )
-                    asyncio.run_coroutine_threadsafe(
-                        send_telegram_message(bot_instance, user_id, message, photo_path=screenshot_path),
-                        bot_instance.loop
-                    )
+                    send_telegram_message(user_id, message, photo_path=screenshot_path)
                     mark_error_sent(user_id)
 
                 failure_count += 1
@@ -508,7 +499,8 @@ def automation_loop(user_id, config, logger):
                 logger.warning(f"[User {user_id}] Minor failure ({failure_count}). Retrying next cycle.")
                 try:
                     page.reload()
-                    page.wait_for_timeout(5000)
+                    page.wait_for_load_state("networkidle")
+                    page.wait_for_timeout(7000)
                 except:
                     pass
                 continue

@@ -109,26 +109,39 @@ def check_campaign_exists(page, campaign_name):
     logger.info(f"Checking existence of campaign: {campaign_name}")
     try:
         page.wait_for_load_state("networkidle")
-        page.wait_for_selector("table", timeout=15000)
-        page.wait_for_timeout(2000)
+        page.wait_for_timeout(5000)
         
-        # Check if row exists
-        row = page.locator("tr", has_text=campaign_name)
-        count = row.count()
+        campaign_found = False
+        rows = page.locator("tr")
         
-        if count > 0:
-            logger.info(f"Campaign '{campaign_name}' found.")
-            return True
-        else:
-            # Fallback search
-            rows = page.locator("tr").all()
-            for r in rows:
-                if campaign_name.lower() in r.inner_text().lower():
-                    logger.info(f"Campaign '{campaign_name}' found via fallback search.")
-                    return True
+        if rows.count() == 0:
+             # Just a warning, maybe table didn't load, but don't raise exception yet if we want to return False
+             logger.warning("No rows found on campaign page during check.")
+             
+        logger.info(f"Total rows found: {rows.count()}")
+        logger.info(f"Searching for campaign: {campaign_name}")
+        
+        for i in range(rows.count()):
+            row_text = rows.nth(i).inner_text().lower()
+            if campaign_name.lower() in row_text:
+                campaign_found = True
+                break
+                
+        # Fallback: text-based detection (handles dynamic UI / React tables)
+        if not campaign_found:
+            logger.warning("Row-based detection failed. Trying text-based detection...")
             
-            logger.warning(f"Campaign '{campaign_name}' NOT found.")
-            return False
+            text_locator = page.locator(f"text={campaign_name}")
+            
+            if text_locator.count() > 0:
+                logger.info(f"Campaign '{campaign_name}' found via text fallback.")
+                campaign_found = True
+                
+        if not campaign_found:
+            raise Exception(f"Campaign '{campaign_name}' not found after all detection methods")
+            
+        logger.info(f"Campaign '{campaign_name}' found.")
+        return True
             
     except Exception as e:
         logger.error(f"Error checking campaign existence: {e}")
@@ -145,8 +158,7 @@ def open_campaign(page, campaign_name):
         try:
             logger.info(f"Retry attempt: {attempt + 1}")
             page.wait_for_load_state("networkidle")
-            page.wait_for_selector("table", timeout=20000)
-            page.wait_for_timeout(3000)
+            page.wait_for_timeout(5000)
             
             row = page.locator("tr", has_text=campaign_name).first
             
@@ -210,7 +222,8 @@ def open_campaign(page, campaign_name):
                 raise Exception("Campaign not found after retries")
             
             page.reload()
-            page.wait_for_timeout(5000)
+            page.wait_for_load_state("networkidle")
+            page.wait_for_timeout(7000)
 
     # Wait for navigation
     try:
