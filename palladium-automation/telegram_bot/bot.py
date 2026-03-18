@@ -1,8 +1,12 @@
 import logging
 import os
 import sys
+import time
+import asyncio
 from dotenv import load_dotenv
-from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters
+from telegram.ext import ApplicationBuilder, CommandHandler, MessageHandler, filters, ContextTypes
+from telegram.request import HTTPXRequest
+from telegram.error import NetworkError, TelegramError
 
 # Adjust path so we can import from the main project
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
@@ -12,6 +16,11 @@ from telegram_bot.handlers import start_command, help_command, status_command, s
 
 # Global variable to store the bot application instance
 bot_app = None
+
+async def global_error_handler(update: object, context: ContextTypes.DEFAULT_TYPE) -> None:
+    """Log the error and send a telegram message to notify the developer."""
+    logger = logging.getLogger('palladium_automation.telegram')
+    logger.error("Exception while handling an update:", exc_info=context.error)
 
 def main():
     """Starts the Telegram bot."""
@@ -35,15 +44,16 @@ def main():
     recover_running_automations()
     logger.info("Auto-recovery completed.")
 
-    # Initialize Global Session Manager
-    from telegram_bot.session_manager import SessionManager
-    SessionManager.get_instance()
-    logger.info("Global Session Manager initialized.")
+    # HTTPX Request with timeouts
+    request = HTTPXRequest(connect_timeout=30, read_timeout=60)
 
     try:
         # Create the Application and pass it your bot's token.
-        application = ApplicationBuilder().token(token).build()
+        application = ApplicationBuilder().token(token).request(request).build()
         bot_app = application
+
+        # Add error handler
+        application.add_error_handler(global_error_handler)
 
         # Register command handlers
         application.add_handler(CommandHandler("start", start_command))
@@ -60,15 +70,23 @@ def main():
 
         logger.info("Bot is initialized and polling for updates...")
         
-        # Run the bot until the user presses Ctrl-C
-        application.run_polling()
+        # Robust Polling Loop
+        while True:
+            try:
+                # Run the bot until the user presses Ctrl-C
+                application.run_polling(allowed_updates=None, drop_pending_updates=True, close_loop=False)
+                # If run_polling returns normally (e.g. signal received), break loop
+                break
+            except (NetworkError, TelegramError, Exception) as e:
+                logger.error(f"Polling crashed due to error: {e}")
+                logger.info("Restarting polling in 5 seconds...")
+                time.sleep(5)
+                continue
         
     except Exception as e:
-        logger.error(f"Failed to start bot: {e}")
+        logger.error(f"Failed to start bot application: {e}")
         print(f"❌ ERROR: Failed to start bot. Check logs for details. {e}")
     finally:
-        from telegram_bot.session_manager import SessionManager
-        SessionManager.get_instance().stop_session()
         logger.info("Bot shutdown complete.")
 
 if __name__ == "__main__":

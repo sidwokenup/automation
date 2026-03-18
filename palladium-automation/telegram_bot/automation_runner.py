@@ -276,19 +276,22 @@ def automation_loop(user_id, config, logger):
 
     interval_minutes = config.get("interval", 10)
     
+    playwright = None
+    browser = None
     context = None
     page = None
     
-    # Initialize Session
-    from telegram_bot.session_manager import SessionManager
-    session = SessionManager.get_instance()
-    
     try:
-        # Start global session if not already started
-        session.start_session(config["username"], config["password"])
-        # Get an isolated page for this specific campaign
-        context, page = session.create_campaign_page()
-        add_log(user_id, "Attached to global browser session")
+        # Initialize Playwright objects locally for thread safety (One browser per thread)
+        from automation.browser import launch_browser, login, navigate_to_campaigns, open_campaign, update_target_link, ensure_campaign_page, check_campaign_exists, retry_action
+        
+        playwright, browser, page = launch_browser()
+        context = page.context
+        
+        # Initial Login
+        add_log(user_id, "Logging in...")
+        login(page, config["username"], config["password"])
+        add_log(user_id, "Login successful")
     except Exception as e:
         logger.error(f"[User {user_id}] Initial setup failed: {e}")
         add_log(user_id, f"Initial setup failed: {e}")
@@ -296,6 +299,12 @@ def automation_loop(user_id, config, logger):
         if user_id in user_status:
             user_status[user_id]["running"] = False
         release_campaign(campaign_name)
+        
+        # Cleanup if failed immediately
+        if page: page.close()
+        if context: context.close()
+        if browser: browser.close()
+        if playwright: playwright.stop()
         return
 
     link_index = get_current_index(user_id)
@@ -332,28 +341,20 @@ def automation_loop(user_id, config, logger):
                 add_log(user_id, f"Using link index: {link_index}")
                 
                 # Check for session expiry at the start of the loop
-                if "login" in page.url:
+                if "login" in page.url.lower():
                     logger.warning(f"[User {user_id}] Session expired detected. Re-logging...")
                     add_log(user_id, "Session expired. Re-authenticating...")
                     try:
-                        session.logged_in = False
-                        session.start_session(config["username"], config["password"])
+                        login(page, config["username"], config["password"])
                         page.wait_for_load_state("networkidle")
                         page.wait_for_timeout(3000)
                         logger.info(f"[User {user_id}] Re-login successful.")
                     except Exception as relogin_error:
                         logger.error(f"[User {user_id}] Relogin failed: {relogin_error}")
-                        # Don't break, let the outer exception handler catch it or retry next loop
                         raise relogin_error
 
-                # Ensure persistent state using global session manager
-                session.check_and_recover_session(page)
-                add_log(user_id, "Session verified")
-                logger.info(f"[User {user_id}] Session active")
-                
+                # Ensure we are on the campaign page
                 ensure_campaign_page(page)
-                
-                from automation.browser import retry_action, check_campaign_exists
                 
                 # Pre-check if campaign exists before attempting to open it
                 campaign_found = False
@@ -534,11 +535,22 @@ def automation_loop(user_id, config, logger):
             # Do NOT modify state here
             save_users(users_data)
         
-        if context:
-            try:
-                context.close()
-            except:
-                pass
+        # Robust Cleanup of Playwright Objects
+        try:
+            if page: page.close()
+        except: pass
+        
+        try:
+            if context: context.close()
+        except: pass
+            
+        try:
+            if browser: browser.close()
+        except: pass
+            
+        try:
+            if playwright: playwright.stop()
+        except: pass
                 
         if user_id in user_status:
             user_status[user_id]["running"] = False
