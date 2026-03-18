@@ -17,9 +17,10 @@ async def users_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     active_users = []
     
     for uid, u_data in users_data.items():
-        if u_data.get("running") == True:
+        if u_data.get("running"):
             campaign = u_data.get("campaign", "Unknown")
-            active_users.append(f"👤 `{uid}` | 📌 `{campaign}`")
+            username = u_data.get("username", "Unknown")
+            active_users.append(f"👤 `{uid}` ({username}) | 📌 `{campaign}`")
             
     if not active_users:
         await update.message.reply_text("📉 No active automations running right now.")
@@ -61,12 +62,20 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /status command."""
     user = update.effective_user
     user_id = user.id
-    logger.info(f"User {user.id} ({user.username}) issued /status command.")
     
     # 1. Check if user has setup
     user_data = state_manager.get_user(user_id)
-    if user_data.get("state") != state_manager.COMPLETED:
-        await update.message.reply_text("❌ You have not completed setup. Use /setup first.")
+    state = user_data.get("state")
+    running = state_manager.is_running(user_id)
+    
+    logger.info(f"[User {user_id}] ({user.username}) issued /status command. State={state}, Running={running}")
+    
+    if not user_data:
+        await update.message.reply_text("❌ Please run /setup first")
+        return
+        
+    if state != state_manager.COMPLETED:
+        await update.message.reply_text("⚠️ Setup incomplete. Continue setup.")
         return
 
     # 2. Get runtime status
@@ -77,7 +86,6 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Automation has not been started yet. Use /run.")
         return
         
-    running = status.get("running", False)
     campaign = status.get("campaign", "Unknown")
     total_links = status.get("total_links", 0)
     current_link = status.get("current_link", "None")
@@ -121,12 +129,20 @@ async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /logs command to show recent automation activity."""
     user = update.effective_user
     user_id = user.id
-    logger.info(f"User {user_id} ({user.username}) issued /logs command.")
     
     # 1. Check if user has setup
     user_data = state_manager.get_user(user_id)
-    if user_data.get("state") != state_manager.COMPLETED:
-        await update.message.reply_text("❌ You have not completed setup. Use /setup first.")
+    state = user_data.get("state")
+    running = state_manager.is_running(user_id)
+    
+    logger.info(f"[User {user_id}] ({user.username}) issued /logs command. State={state}, Running={running}")
+    
+    if not user_data:
+        await update.message.reply_text("❌ Please run /setup first")
+        return
+        
+    if state != state_manager.COMPLETED:
+        await update.message.reply_text("⚠️ Setup incomplete. Continue setup.")
         return
 
     # 2. Get logs
@@ -166,17 +182,24 @@ async def run_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /run command to start automation."""
     user = update.effective_user
     user_id = user.id
-    logger.info(f"User {user_id} ({user.username}) issued /run command.")
 
     user_data = state_manager.get_user(user_id)
+    state = user_data.get("state")
+    running = state_manager.is_running(user_id)
+    
+    logger.info(f"[User {user_id}] ({user.username}) issued /run command. State={state}, Running={running}")
+    
+    if not user_data:
+        await update.message.reply_text("❌ Please run /setup first")
+        return
     
     # Check if setup is completed
-    if user_data.get("state") != state_manager.COMPLETED:
+    if state != state_manager.COMPLETED:
         await update.message.reply_text("❌ Please complete setup first using /setup")
         return
 
     # Check if already running
-    if state_manager.is_running(user_id):
+    if running:
         await update.message.reply_text("⚠️ Automation already running")
         return
 
@@ -185,7 +208,7 @@ async def run_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         # Pass the global logger or create a specific one
         # Pass the bot instance from context
         start_automation(user_id, user_data, logging.getLogger('palladium_automation.runner'), context.bot)
-        state_manager.set_running(user_id, True)
+        # Note: start_automation now handles setting 'running': True in disk, and shouldn't change state.
         await update.message.reply_text("🚀 Automation started successfully!")
     except Exception as e:
         logger.error(f"Failed to start automation for user {user_id}: {e}")
@@ -195,17 +218,22 @@ async def stop_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /stop command to halt automation."""
     user = update.effective_user
     user_id = user.id
-    logger.info(f"User {user_id} ({user.username}) issued /stop command.")
+    
+    user_data = state_manager.get_user(user_id)
+    state = user_data.get("state")
+    running = state_manager.is_running(user_id)
+    
+    logger.info(f"[User {user_id}] ({user.username}) issued /stop command. State={state}, Running={running}")
 
     # Check if running
-    if not state_manager.is_running(user_id):
+    if not running:
         await update.message.reply_text("⚠️ No automation is currently running")
         return
 
     # Stop automation
     try:
         stop_automation(user_id)
-        state_manager.set_running(user_id, False)
+        # Note: stop_automation now handles setting 'running': False in disk, and shouldn't change state.
         await update.message.reply_text("🛑 Automation stopped successfully")
     except Exception as e:
         logger.error(f"Failed to stop automation for user {user_id}: {e}")

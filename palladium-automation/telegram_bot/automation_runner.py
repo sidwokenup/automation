@@ -197,7 +197,7 @@ def start_automation(user_id, config, logger, bot_instance=None):
     # user_data was loaded above
     if str_user_id in user_data:
         user_data[str_user_id]["running"] = True
-        user_data[str_user_id]["state"] = "RUNNING"
+        # Do NOT modify state here, state is only for setup flow
         save_users(user_data)
     elif str_user_id not in user_data: # Should exist, but safety check
          # This case should ideally be handled by setup flow, but just in case
@@ -235,7 +235,7 @@ def stop_automation(user_id):
     users_data = load_users()
     if str_user_id in users_data:
         users_data[str_user_id]["running"] = False
-        users_data[str_user_id]["state"] = "STOPPED"
+        # Do NOT modify state here
         save_users(users_data)
     
     if str_user_id in user_flags:
@@ -391,7 +391,7 @@ def automation_loop(user_id, config, logger):
                     users_data = load_users()
                     if str(user_id) in users_data:
                         users_data[str(user_id)]["running"] = False
-                        users_data[str(user_id)]["state"] = "ERROR"
+                        # Do NOT modify state here
                         save_users(users_data)
                         
                     stop_automation(user_id)
@@ -462,7 +462,7 @@ def automation_loop(user_id, config, logger):
                     users_data = load_users()
                     if str(user_id) in users_data:
                         users_data[str(user_id)]["running"] = False
-                        users_data[str(user_id)]["state"] = "ERROR"
+                        # Do NOT modify state here
                         save_users(users_data)
                         
                     stop_automation(user_id)
@@ -531,9 +531,7 @@ def automation_loop(user_id, config, logger):
         str_user_id = str(user_id)
         if str_user_id in users_data:
             users_data[str_user_id]["running"] = False
-            # Only update state if it wasn't already marked as ERROR by the max_errors handler
-            if users_data[str_user_id].get("state") != "ERROR":
-                users_data[str_user_id]["state"] = "STOPPED"
+            # Do NOT modify state here
             save_users(users_data)
         
         if context:

@@ -32,7 +32,7 @@ WAITING_INTERVAL = "WAITING_INTERVAL"
 COMPLETED = "COMPLETED"
 
 def load_users():
-    """Loads user data from the JSON file."""
+    """Loads user data from the JSON file. Includes data migration to fix old states."""
     # Use both thread lock and file lock for maximum safety
     with file_lock:
         lock = FileLock(LOCK_FILE)
@@ -42,7 +42,26 @@ def load_users():
                     return {}
                 try:
                     with open(DATA_FILE, 'r', encoding='utf-8') as f:
-                        return json.load(f)
+                        data = json.load(f)
+                        
+                    # DATA MIGRATION: Fix invalid runtime states
+                    migrated = False
+                    for uid, user_data in data.items():
+                        state = user_data.get("state")
+                        if state in ["RUNNING", "STOPPED", "ERROR"]:
+                            user_data["state"] = COMPLETED
+                            migrated = True
+                            
+                    if migrated:
+                        # Re-save immediately if we migrated data
+                        logger.info("Migrated invalid states in user_data.json to COMPLETED")
+                        # Use same logic as save_users but inline to avoid nested locks
+                        with tempfile.NamedTemporaryFile("w", delete=False, encoding='utf-8') as tmp:
+                            json.dump(data, tmp, indent=4)
+                            temp_name = tmp.name
+                        os.replace(temp_name, DATA_FILE)
+                        
+                    return data
                 except Exception as e:
                     logger.error(f"Error decoding {DATA_FILE}: {e}. Attempting recovery.")
                     
