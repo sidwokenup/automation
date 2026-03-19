@@ -1,6 +1,7 @@
 from playwright.sync_api import sync_playwright
 import logging
 import time
+import random
 
 logger = logging.getLogger('palladium_automation')
 
@@ -236,7 +237,7 @@ def open_campaign(page, campaign_name):
 
 def update_target_link(page, new_link):
     """
-    Updates the target link in the campaign settings page using robust selectors.
+    Updates the target link in the campaign settings page using robust selectors and multi-strategy waiting.
     """
     logger.info(f"Updating target link to: {new_link}")
 
@@ -244,7 +245,8 @@ def update_target_link(page, new_link):
         # 1. Ensure we are on the correct page and UI is ready
         logger.info(f"Current URL: {page.url}")
         page.wait_for_url("**/change/**", timeout=15000)
-        page.wait_for_timeout(2000) # Allow dynamic UI to settle
+        page.wait_for_load_state("networkidle")
+        time.sleep(random.uniform(1.5, 3.0)) # Human-like delay
         
         # 2. Locate Correct Input Field (Hierarchy of strategies)
         logger.info("Locating target link input field...")
@@ -279,17 +281,17 @@ def update_target_link(page, new_link):
 
         logger.info("Input field successfully located.")
 
-        # 3. Clear Existing Value (Strong Method)
-        logger.info("Clearing existing value...")
-        input_field.click()
-        input_field.press("Control+A")
-        input_field.press("Backspace")
-            
-        # 4. Enter New Link
+        # 3. Clear & Enter New Link (Defensive)
         logger.info(f"Entering new link: {new_link}")
+        input_field.click()
         input_field.fill(new_link)
         
-        # 5. Scroll to Save Button
+        # Double check value
+        if input_field.input_value() != new_link:
+             logger.warning("Input value mismatch, retrying via JS...")
+             page.evaluate("(el, val) => { el.value = val; el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); }", [input_field, new_link])
+
+        # 4. Locate Save Button
         logger.info("Locating Save button...")
         save_button = page.locator("button:has-text('Save')")
         
@@ -298,22 +300,83 @@ def update_target_link(page, new_link):
              
         logger.info("Scrolling to Save button...")
         save_button.scroll_into_view_if_needed()
+        time.sleep(random.uniform(1.0, 2.0))
         
-        # Wait a bit for UI to settle
-        page.wait_for_timeout(2000)
+        # 5. Multi-Strategy Save Action (Retry Logic)
+        max_retries = 1
+        success = False
         
-        # 6. Click Save
-        logger.info("Clicking Save button...")
-        save_button.click()
-        page.wait_for_timeout(3000)
+        for attempt in range(max_retries + 1):
+            logger.info(f"Executing Save Action (Attempt {attempt+1})...")
+            
+            # Ensure button is clickable
+            if not save_button.is_enabled():
+                 logger.info("Waiting for button to become enabled...")
+                 try:
+                     save_button.wait_for(state="enabled", timeout=5000)
+                 except:
+                     logger.warning("Button did not become enabled, trying to click anyway...")
+
+            # Step 1: Trigger Action
+            try:
+                save_button.click(timeout=5000)
+            except Exception as e:
+                logger.warning(f"Standard click failed: {e}. Attempting force click.")
+                save_button.click(force=True)
+
+            # Step 2: Initial Delay for JS
+            time.sleep(random.uniform(2.0, 4.0))
+            
+            # Step 3: Primary Wait (Network)
+            logger.info("Waiting for network idle...")
+            try:
+                page.wait_for_load_state("networkidle", timeout=25000)
+            except:
+                logger.warning("Network idle timeout. Proceeding to UI checks.")
+
+            # Step 4: Secondary Success Detection (UI-Based)
+            # Check for generic success indicators
+            success_selectors = [
+                "text=Saved", "text=Updated", "text=Success", "text=Changes saved",
+                "div[role='alert']", ".Toastify", ".notification"
+            ]
+            
+            for selector in success_selectors:
+                if page.locator(selector).is_visible(timeout=2000):
+                    logger.info(f"Success confirmed via UI indicator: {selector}")
+                    success = True
+                    break
+            
+            if success:
+                break
+                
+            # Step 5: URL Check (Optional)
+            if "campaign-page" in page.url and "change" not in page.url:
+                logger.info("Success confirmed via URL redirect.")
+                success = True
+                break
+                
+            # Check for error
+            if page.locator("text=Error").is_visible(timeout=1000) or page.locator("text=Failed").is_visible(timeout=1000):
+                logger.error("Error message detected on page.")
+            
+            if attempt < max_retries:
+                logger.warning("Success verification failed. Retrying save action...")
+                # Optional: Refill input just in case
+                input_field.fill(new_link)
+                time.sleep(1)
         
-        # 7. Wait for Successful Save (Redirect to campaign dashboard)
-        logger.info("Waiting for save confirmation and redirect...")
-        page.wait_for_url("**/campaign-page", timeout=15000)
-        page.wait_for_timeout(2000)
-        
-        # 8. Confirm Success
-        logger.info("Link updated and saved successfully. Returned to dashboard.")
+        if not success:
+            # Final check - if we are still on the page, assume failure but log extensively
+            logger.warning("All success indicators failed. Logging state.")
+            try:
+                page.screenshot(path=f"logs/save_failed_state_{int(time.time())}.png")
+                logger.info(f"Current URL: {page.url}")
+            except: pass
+            
+            raise Exception("Save action could not be verified after retries.")
+
+        logger.info("Link updated successfully.")
         return True
 
     except Exception as e:

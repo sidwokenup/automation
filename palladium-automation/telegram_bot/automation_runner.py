@@ -310,6 +310,7 @@ def automation_loop(user_id, config, logger):
     link_index = get_current_index(user_id)
     failure_count = 0
     error_count = 0
+    cycle_count = 0  # Track cycles for periodic reset
 
     if not os.path.exists("logs"):
         os.makedirs("logs")
@@ -428,6 +429,27 @@ def automation_loop(user_id, config, logger):
                 users = load_users()
                 users[str(user_id)] = get_user(user_id)
                 save_users(users)
+                
+                # Periodic Page Reset for Stability (CRITICAL)
+                cycle_count += 1
+                if cycle_count >= 3:
+                    logger.info(f"[User {user_id}] Refreshing page for stability after {cycle_count} cycles.")
+                    add_log(user_id, f"Refreshing page for stability after {cycle_count} cycles.")
+                    try:
+                        page.goto("https://next.palladium.expert/pages/campaign-page")
+                        page.wait_for_load_state("domcontentloaded")
+                        page.wait_for_timeout(3000)
+                        logger.info(f"[User {user_id}] Page reset completed successfully.")
+                        cycle_count = 0  # Reset counter
+                    except Exception as reset_err:
+                        logger.warning(f"[User {user_id}] Navigation reset failed: {reset_err}. Attempting reload...")
+                        try:
+                            page.reload(wait_until="domcontentloaded")
+                            page.wait_for_timeout(3000)
+                            logger.info(f"[User {user_id}] Page reload completed successfully.")
+                            cycle_count = 0  # Reset counter
+                        except Exception as reload_err:
+                            logger.error(f"[User {user_id}] Page reset entirely failed: {reload_err}")
     
             except Exception as e:
                 error_msg = str(e)
