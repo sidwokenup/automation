@@ -83,7 +83,7 @@ async def process_user_message(user_id: int, user_message: str, bot_instance=Non
         response = chat.send_message(user_message)
         
         # Check if the model wants to call a tool
-        if response.function_calls:
+        if getattr(response, "function_calls", None):
             for tool_call in response.function_calls:
                 function_name = tool_call.name
                 function_args = tool_call.args
