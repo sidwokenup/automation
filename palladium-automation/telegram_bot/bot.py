@@ -22,6 +22,21 @@ async def global_error_handler(update: object, context: ContextTypes.DEFAULT_TYP
     logger = logging.getLogger('palladium_automation.telegram')
     logger.error("Exception while handling an update:", exc_info=context.error)
 
+async def set_bot_commands(application):
+    """Sets the bot menu commands visible in the Telegram UI."""
+    from telegram import BotCommand
+    commands = [
+        BotCommand("start", "Welcome message"),
+        BotCommand("help", "Show available commands"),
+        BotCommand("setup", "Configure your automation"),
+        BotCommand("run", "Start automation"),
+        BotCommand("stop", "Stop automation"),
+        BotCommand("status", "Check your automation status"),
+        BotCommand("logs", "View recent activity logs"),
+        BotCommand("users", "View all active automations (Admin)")
+    ]
+    await application.bot.set_my_commands(commands)
+
 def main():
     """Starts the Telegram bot."""
     global bot_app
@@ -67,6 +82,10 @@ def main():
 
         # Register message handler for setup flow
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
+
+        logger.info("Setting bot commands menu...")
+        # Since we are not in an async context here, we can set up a task to run once the app starts
+        application.job_queue.run_once(lambda ctx: set_bot_commands(application), 1)
 
         logger.info("Bot is initialized and polling for updates...")
         

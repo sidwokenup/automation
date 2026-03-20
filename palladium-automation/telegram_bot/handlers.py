@@ -39,7 +39,9 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/setup - Configure your automation\n"
         "/run - Start automation\n"
         "/stop - Stop automation\n"
-        "/status - Check status"
+        "/status - Check status\n"
+        "/logs - View recent activity logs\n"
+        "/users - View all active automations (Admin)"
     )
     await update.message.reply_text(welcome_message)
 
@@ -54,7 +56,9 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/setup - Configure your automation\n"
         "/run - Start automation\n"
         "/stop - Stop automation\n"
-        "/status - Check status"
+        "/status - Check status\n"
+        "/logs - View recent activity logs\n"
+        "/users - View all active automations (Admin)"
     )
     await update.message.reply_text(help_message)
 
@@ -78,15 +82,18 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Setup incomplete. Continue setup.")
         return
 
+    if not running:
+        await update.message.reply_text("🛑 Automation Status: STOPPED\n\nUse /run to start automation.")
+        return
+        
     # 2. Get runtime status
     status = get_status(user_id)
     
     # 3. Check if never started
     if not status:
-        await update.message.reply_text("⚠️ Automation has not been started yet. Use /run.")
-        return
+        status = {}
         
-    campaign = status.get("campaign", "Unknown")
+    campaign = user_data.get("campaign", "Unknown")
     total_links = status.get("total_links", 0)
     current_link = status.get("current_link", "None")
     last_updated = status.get("last_updated")
@@ -145,11 +152,15 @@ async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Setup incomplete. Continue setup.")
         return
 
+    if not running:
+        await update.message.reply_text("📭 Automation is not running.\nRun /run to start automation.")
+        return
+
     # 2. Get logs
     logs = get_logs(user_id)
     
     if not logs:
-        await update.message.reply_text("📭 No logs available yet.\nRun /run to start automation.")
+        await update.message.reply_text("📭 No logs available yet. They will appear here once the automation performs actions.")
         return
         
     # 3. Format response (Last 15 logs)
@@ -368,7 +379,9 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         completion_msg = (
             "✅ Setup completed successfully!\n\n"
             "Use /run to start automation\n"
-            "Use /stop to stop automation"
+            "Use /stop to stop automation\n"
+            "Use /status to check status\n"
+            "Use /logs to view activity logs"
         )
         await update.message.reply_text(completion_msg)
         return
