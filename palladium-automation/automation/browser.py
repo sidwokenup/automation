@@ -149,7 +149,7 @@ def check_campaign_exists(page, campaign_name):
         logger.error(f"Error checking campaign existence: {e}")
         return False
 
-def open_campaign(page, campaign_name):
+def open_campaign(page, campaign_name, user_id=None):
     """
     Finds a campaign by name and opens its edit page.
     """
@@ -236,7 +236,7 @@ def open_campaign(page, campaign_name):
         logger.error(f"Error waiting for campaign settings page: {e}")
         raise
 
-def update_target_link(page, new_link):
+def update_target_link(page, new_link, user_id=None):
     """
     Updates the target link in the campaign settings page using robust selectors and multi-strategy waiting.
     """
@@ -329,6 +329,17 @@ def update_target_link(page, new_link):
                     if save_button.count() > 0:
                         logger.info(f"AI Recovery successful. New selector: {new_selector}")
                         set_cached_selector(action_desc, new_selector)
+                        
+                        # Send Telegram Alert
+                        if user_id:
+                            try:
+                                from telegram_bot.automation_runner import send_telegram_message
+                                token = os.getenv("TELEGRAM_BOT_TOKEN")
+                                if token:
+                                    msg = f"🤖 *AI Self-Healing Triggered*\n\nThe 'Save' button changed on the website.\nMy AI Vision successfully found the new button and fixed it automatically!\n\nNo action required."
+                                    send_telegram_message(token, user_id, msg)
+                            except:
+                                pass
                     else:
                         raise Exception(f"AI generated selector '{new_selector}' found 0 elements.")
                 else:

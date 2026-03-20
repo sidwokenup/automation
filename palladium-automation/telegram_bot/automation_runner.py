@@ -405,7 +405,7 @@ def automation_loop(user_id, config, logger):
                 from telegram_bot.ai_selector import get_cached_selector, set_cached_selector, generate_selector_with_gemini
                 
                 try:
-                    open_campaign(page, campaign_name)
+                    open_campaign(page, campaign_name, user_id=user_id)
                     add_log(user_id, f"Opened campaign: {campaign_name}")
                 except Exception as open_err:
                     logger.warning(f"Original open_campaign failed: {open_err}. Triggering AI recovery...")
@@ -426,13 +426,19 @@ def automation_loop(user_id, config, logger):
                             btn.first.click()
                             page.wait_for_url("**/change/**", timeout=15000)
                             add_log(user_id, f"Opened campaign (AI recovered): {campaign_name}")
+                            
+                            # Send Telegram Alert
+                            token = os.getenv("TELEGRAM_BOT_TOKEN")
+                            if token:
+                                msg = f"🤖 *AI Self-Healing Triggered*\n\nThe edit button for campaign '{campaign_name}' changed.\nMy AI Vision successfully found the new button and fixed it automatically!\n\nNo action required."
+                                send_telegram_message(token, user_id, msg)
                         else:
                             raise Exception(f"AI generated selector '{new_selector}' found 0 elements.")
                     else:
                         raise Exception("Failed to open campaign and AI recovery failed.")
                 
                 # The update_target_link already has internal AI recovery now
-                update_target_link(page, current_link)
+                update_target_link(page, current_link, user_id=user_id)
                 
                 logger.info(f"[User {user_id}] Updated link successfully: {current_link}")
                 add_log(user_id, f"Updated link successfully: {current_link}")
@@ -509,7 +515,7 @@ def automation_loop(user_id, config, logger):
                     stop_msg = (
                         "❌ *Automation Stopped*\n\n"
                         f"Reason: Reached maximum limit of {MAX_ERRORS} consecutive errors.\n"
-                        "Please check your campaign settings and try again."
+                        "Please check your campaign settings and try again. If the issue persists, please contact support."
                     )
                     
                     # Fetch token safely
