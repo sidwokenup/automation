@@ -251,137 +251,24 @@ async def stop_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Failed to stop automation. Check logs.")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles incoming text messages based on user state."""
+    """Handles incoming text messages using the AI Agent orchestrator."""
     user = update.effective_user
     text = update.message.text.strip()
     user_id = user.id
-    str_user_id = str(user_id)
     
-    # load_users() is called correctly before reading state
-    users_data = state_manager.load_users()
+    logger.info(f"Received message from User {user_id} ({user.username}): {text}")
     
-    if str_user_id not in users_data:
-        return
-        
-    user_state = users_data[str_user_id]
-    state = user_state.get("state")
+    # Show typing indicator while LLM processes
+    await context.bot.send_chat_action(chat_id=user_id, action='typing')
     
-    if not state or state == state_manager.COMPLETED:
-        # Ignore messages if not in setup flow
-        return
-
-    # WAITING_USERNAME
-    if state == state_manager.WAITING_USERNAME:
-        if not text:
-            await update.message.reply_text("❌ Invalid input. Please try again.\nEnter your username:")
-            return
-            
-        logger.info(f"User {user_id} provided username.")
+    try:
+        from telegram_bot.agent import process_user_message
         
-        users_data = state_manager.load_users()
-        users_data[str_user_id]["username"] = text
-        users_data[str_user_id]["state"] = state_manager.WAITING_PASSWORD
-        state_manager.save_users(users_data)
+        # Pass the message to the AI Agent
+        response = await process_user_message(user_id, text, bot_instance=context.bot)
         
-        logger.info(f"User {user_id} state: {users_data[str_user_id]['state']}")
-        await update.message.reply_text("Enter your password:")
-        return
-
-    # WAITING_PASSWORD
-    elif state == state_manager.WAITING_PASSWORD:
-        if not text:
-            await update.message.reply_text("❌ Invalid input. Please try again.\nEnter your password:")
-            return
-            
-        logger.info(f"User {user_id} provided password.")
+        await update.message.reply_text(response, parse_mode='Markdown')
         
-        users_data = state_manager.load_users()
-        users_data[str_user_id]["password"] = text
-        users_data[str_user_id]["state"] = state_manager.WAITING_CAMPAIGN
-        state_manager.save_users(users_data)
-        
-        logger.info(f"User {user_id} state: {users_data[str_user_id]['state']}")
-        
-        # Delete the message containing the password for security
-        try:
-            await update.message.delete()
-            await update.message.reply_text("*(Password message deleted for security)*", parse_mode='Markdown')
-        except Exception as e:
-            logger.warning(f"Could not delete password message: {e}")
-            
-        await update.message.reply_text("Enter campaign name (e.g., CAMP-1):")
-        return
-
-    # WAITING_CAMPAIGN
-    elif state == state_manager.WAITING_CAMPAIGN:
-        if not text:
-            await update.message.reply_text("❌ Invalid input. Please try again.\nEnter campaign name:")
-            return
-            
-        logger.info(f"User {user_id} provided campaign: {text}")
-        
-        users_data = state_manager.load_users()
-        users_data[str_user_id]["campaign"] = text
-        users_data[str_user_id]["state"] = state_manager.WAITING_LINKS
-        state_manager.save_users(users_data)
-        
-        logger.info(f"User {user_id} state: {users_data[str_user_id]['state']}")
-        await update.message.reply_text("Enter links (comma-separated):")
-        return
-
-    # WAITING_LINKS
-    elif state == state_manager.WAITING_LINKS:
-        if not text:
-            await update.message.reply_text("❌ Invalid input. Please try again.\nEnter links (comma-separated):")
-            return
-            
-        links = text.split(",")
-        links = [l.strip() for l in links if l.strip()]
-        
-        if not links:
-            await update.message.reply_text("❌ At least 1 valid link is required. Please try again.\nEnter links (comma-separated):")
-            return
-            
-        logger.info(f"User {user_id} provided {len(links)} links.")
-        
-        users_data = state_manager.load_users()
-        users_data[str_user_id]["links"] = links
-        users_data[str_user_id]["state"] = state_manager.WAITING_INTERVAL
-        state_manager.save_users(users_data)
-        
-        logger.info(f"User {user_id} state: {users_data[str_user_id]['state']}")
-        await update.message.reply_text("Enter interval in minutes (e.g., 10):")
-        return
-
-    # WAITING_INTERVAL
-    elif state == state_manager.WAITING_INTERVAL:
-        if not text:
-            await update.message.reply_text("❌ Invalid input. Please try again.\nEnter interval in minutes (e.g., 10):")
-            return
-            
-        try:
-            interval = int(text)
-            if interval < 1:
-                raise ValueError("Interval must be at least 1")
-        except ValueError:
-            await update.message.reply_text("❌ Invalid input. Please enter a valid number (minimum 1):\nEnter interval in minutes (e.g., 10):")
-            return
-            
-        logger.info(f"User {user_id} provided interval: {interval} minutes.")
-        
-        users_data = state_manager.load_users()
-        users_data[str_user_id]["interval"] = interval
-        users_data[str_user_id]["state"] = state_manager.COMPLETED
-        state_manager.save_users(users_data)
-        
-        logger.info(f"User {user_id} state: {users_data[str_user_id]['state']}")
-        
-        completion_msg = (
-            "✅ Setup completed successfully!\n\n"
-            "Use /run to start automation\n"
-            "Use /stop to stop automation\n"
-            "Use /status to check status\n"
-            "Use /logs to view activity logs"
-        )
-        await update.message.reply_text(completion_msg)
-        return
+    except Exception as e:
+        logger.error(f"Error in handle_message: {e}")
+        await update.message.reply_text("❌ An error occurred while processing your message.")
