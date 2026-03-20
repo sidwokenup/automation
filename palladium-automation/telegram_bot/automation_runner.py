@@ -71,11 +71,9 @@ MAX_ERRORS = 5 # Maximum consecutive errors before stopping automation
 
 from telegram import Bot
 
-def send_telegram_message(user_id, text, photo_path=None):
+def send_telegram_message(token, user_id, text, photo_path=None):
     """Safely sends a message or photo via Telegram without crashing the thread (Synchronous)."""
     try:
-        token = os.getenv("TELEGRAM_BOT_TOKEN")
-
         if not token:
             print("[ERROR] TELEGRAM_BOT_TOKEN not found in environment")
             return
@@ -387,7 +385,11 @@ def automation_loop(user_id, config, logger):
                     
                     # Send critical error alert (Sync)
                     msg = f"❌ *Automation Stopped*\n\nCampaign '{campaign_name}' could not be found after multiple retries.\nPlease check the name and try again."
-                    send_telegram_message(user_id, msg, photo_path=screenshot_path)
+                    
+                    # Fetch token safely
+                    token = os.getenv("TELEGRAM_BOT_TOKEN")
+                    if token:
+                        send_telegram_message(token, user_id, msg, photo_path=screenshot_path)
                     
                     from telegram_bot.state_manager import load_users, save_users
                     users_data = load_users()
@@ -399,10 +401,38 @@ def automation_loop(user_id, config, logger):
                     stop_automation(user_id)
                     continue
 
-                retry_action(lambda: open_campaign(page, campaign_name))
-                add_log(user_id, f"Opened campaign: {campaign_name}")
+                # Introduce AI self-healing during open_campaign
+                from telegram_bot.ai_selector import get_cached_selector, set_cached_selector, generate_selector_with_gemini
                 
-                retry_action(lambda: update_target_link(page, current_link))
+                try:
+                    open_campaign(page, campaign_name)
+                    add_log(user_id, f"Opened campaign: {campaign_name}")
+                except Exception as open_err:
+                    logger.warning(f"Original open_campaign failed: {open_err}. Triggering AI recovery...")
+                    
+                    # Take screenshot and get HTML for AI
+                    os.makedirs("logs", exist_ok=True)
+                    screenshot_path = f"logs/ai_recovery_open_{int(time.time())}.png"
+                    page.screenshot(path=screenshot_path)
+                    html_content = page.content()
+                    
+                    action_desc = f"Click the 'Edit' or 'Settings' button for the campaign named '{campaign_name}'."
+                    new_selector = generate_selector_with_gemini(html_content, screenshot_path, action_desc)
+                    
+                    if new_selector:
+                        btn = page.locator(new_selector)
+                        if btn.count() > 0:
+                            logger.info(f"AI Recovery successful. Clicking new selector: {new_selector}")
+                            btn.first.click()
+                            page.wait_for_url("**/change/**", timeout=15000)
+                            add_log(user_id, f"Opened campaign (AI recovered): {campaign_name}")
+                        else:
+                            raise Exception(f"AI generated selector '{new_selector}' found 0 elements.")
+                    else:
+                        raise Exception("Failed to open campaign and AI recovery failed.")
+                
+                # The update_target_link already has internal AI recovery now
+                update_target_link(page, current_link)
                 
                 logger.info(f"[User {user_id}] Updated link successfully: {current_link}")
                 add_log(user_id, f"Updated link successfully: {current_link}")
@@ -422,7 +452,9 @@ def automation_loop(user_id, config, logger):
                 
                 # Mark error as resolved if it was active
                 if mark_error_resolved(user_id):
-                     send_telegram_message(user_id, "✅ *Automation Resumed*\n\nSystem has recovered and automation is running normally.")
+                     token = os.getenv("TELEGRAM_BOT_TOKEN")
+                     if token:
+                         send_telegram_message(token, user_id, "✅ *Automation Resumed*\n\nSystem has recovered and automation is running normally.")
     
                 # Save user data to disk explicitly after status/index change
                 from telegram_bot.state_manager import get_user, save_users, load_users
@@ -479,7 +511,11 @@ def automation_loop(user_id, config, logger):
                         f"Reason: Reached maximum limit of {MAX_ERRORS} consecutive errors.\n"
                         "Please check your campaign settings and try again."
                     )
-                    send_telegram_message(user_id, stop_msg, photo_path=screenshot_path)
+                    
+                    # Fetch token safely
+                    token = os.getenv("TELEGRAM_BOT_TOKEN")
+                    if token:
+                        send_telegram_message(token, user_id, stop_msg, photo_path=screenshot_path)
                     
                     from telegram_bot.state_manager import load_users, save_users
                     users_data = load_users()
@@ -513,8 +549,12 @@ def automation_loop(user_id, config, logger):
                         f"🔍 Details: `{error_msg}`\n\n"
                         "🔄 The system will automatically recover and continue."
                     )
-                    send_telegram_message(user_id, message, photo_path=screenshot_path)
-                    mark_error_sent(user_id)
+                    
+                    # Fetch token safely
+                    token = os.getenv("TELEGRAM_BOT_TOKEN")
+                    if token:
+                        send_telegram_message(token, user_id, message, photo_path=screenshot_path)
+                        mark_error_sent(user_id)
 
                 failure_count += 1
                 
