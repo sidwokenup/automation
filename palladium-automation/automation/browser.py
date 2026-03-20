@@ -2,6 +2,7 @@ from playwright.sync_api import sync_playwright
 import logging
 import time
 import random
+import os
 
 logger = logging.getLogger('palladium_automation')
 
@@ -293,10 +294,45 @@ def update_target_link(page, new_link):
 
         # 4. Locate Save Button
         logger.info("Locating Save button...")
-        save_button = page.locator("button:has-text('Save')")
         
-        if save_button.count() == 0:
-             raise Exception("Save button not found using :has-text('Save').")
+        # Integrate self-healing AI selector
+        from telegram_bot.ai_selector import generate_selector_with_gemini, get_cached_selector, set_cached_selector
+        
+        action_desc = "Click the 'Save' button to update the campaign link."
+        cached_sel = get_cached_selector(action_desc)
+        save_button = None
+        
+        if cached_sel:
+            logger.info(f"Trying cached selector: {cached_sel}")
+            temp_btn = page.locator(cached_sel)
+            if temp_btn.count() > 0 and temp_btn.first.is_visible():
+                save_button = temp_btn.first
+                logger.info("Cached selector successful.")
+        
+        if not save_button:
+            # Try original hardcoded strategy
+            save_button = page.locator("button:has-text('Save')")
+            
+            if save_button.count() == 0:
+                logger.warning("Original Save button selector failed. Triggering AI recovery...")
+                
+                # Take screenshot and get HTML for AI
+                os.makedirs("logs", exist_ok=True)
+                screenshot_path = f"logs/ai_recovery_save_{int(time.time())}.png"
+                page.screenshot(path=screenshot_path)
+                html_content = page.content()
+                
+                new_selector = generate_selector_with_gemini(html_content, screenshot_path, action_desc)
+                
+                if new_selector:
+                    save_button = page.locator(new_selector)
+                    if save_button.count() > 0:
+                        logger.info(f"AI Recovery successful. New selector: {new_selector}")
+                        set_cached_selector(action_desc, new_selector)
+                    else:
+                        raise Exception(f"AI generated selector '{new_selector}' found 0 elements.")
+                else:
+                    raise Exception("Save button not found and AI recovery failed to generate a selector.")
              
         logger.info("Scrolling to Save button...")
         save_button.scroll_into_view_if_needed()
