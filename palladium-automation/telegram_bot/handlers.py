@@ -176,18 +176,22 @@ async def setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(user.id)
     logger.info(f"User {user.id} ({user.username}) started setup.")
     
-    from telegram_bot.state_manager import load_users, save_users
-    user_data = load_users()
+    # Initialize user if not exists
+    user_data = state_manager.get_user(user.id)
     
-    if user_id not in user_data:
-        user_data[user_id] = {}
-        
-    user_data[user_id]["state"] = state_manager.WAITING_USERNAME
-    user_data[user_id]["running"] = False
+    # Check if they already have config
+    has_config = bool(user_data.get("username") and user_data.get("campaign"))
     
-    save_users(user_data)
+    state_manager.set_state(user.id, state_manager.WAITING_USERNAME)
     
-    await update.message.reply_text("Let's configure your automation.\n\nEnter your username:")
+    if has_config:
+        await update.message.reply_text(
+            f"You already have a configuration saved for campaign '{user_data.get('campaign')}'.\n"
+            "Entering new details will overwrite it.\n\n"
+            "Please enter your Palladium username (email):"
+        )
+    else:
+        await update.message.reply_text("Let's configure your automation.\n\nEnter your Palladium username (email):")
 
 async def run_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /run command to start automation."""
@@ -204,8 +208,8 @@ async def run_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Please run /setup first")
         return
     
-    # Check if setup is completed
-    if state != state_manager.COMPLETED:
+    # Check if setup is completed or ready to run
+    if state not in [state_manager.COMPLETED, state_manager.READY_TO_RUN]:
         await update.message.reply_text("❌ Please complete setup first using /setup")
         return
 
@@ -251,13 +255,83 @@ async def stop_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Failed to stop automation. Check logs.")
 
 async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
-    """Handles incoming text messages using the AI Agent orchestrator."""
+    """Handles incoming text messages with a hybrid State Machine + AI approach."""
     user = update.effective_user
     text = update.message.text.strip()
     user_id = user.id
     
     logger.info(f"Received message from User {user_id} ({user.username}): {text}")
     
+    user_data = state_manager.get_user(user_id)
+    state = user_data.get("state")
+    
+    # --- 1. STRICT STATE MACHINE FOR SETUP FLOW ---
+    if state == state_manager.WAITING_USERNAME:
+        state_manager.update_user(user_id, {"username": text, "state": state_manager.WAITING_PASSWORD})
+        await update.message.reply_text("Enter your password:")
+        return
+
+    elif state == state_manager.WAITING_PASSWORD:
+        state_manager.update_user(user_id, {"password": text, "state": state_manager.WAITING_CAMPAIGN})
+        try:
+            await update.message.delete()
+            await update.message.reply_text("*(Password message deleted for security)*", parse_mode='Markdown')
+        except:
+            pass
+        await update.message.reply_text("Enter campaign name (e.g., CAMP-1):")
+        return
+
+    elif state == state_manager.WAITING_CAMPAIGN:
+        state_manager.update_user(user_id, {"campaign": text, "state": state_manager.WAITING_LINKS})
+        await update.message.reply_text("Enter links (comma-separated):")
+        return
+
+    elif state == state_manager.WAITING_LINKS:
+        links = [l.strip() for l in text.split(",") if l.strip()]
+        if not links:
+            await update.message.reply_text("❌ At least 1 valid link is required.\nEnter links (comma-separated):")
+            return
+        state_manager.update_user(user_id, {"links": links, "state": state_manager.WAITING_INTERVAL})
+        await update.message.reply_text("Enter interval in minutes (e.g., 10):")
+        return
+
+    elif state == state_manager.WAITING_INTERVAL:
+        try:
+            interval = int(text)
+            if interval < 1: raise ValueError()
+        except ValueError:
+            await update.message.reply_text("❌ Invalid input. Please enter a valid number (minimum 1):\nEnter interval in minutes:")
+            return
+            
+        state_manager.update_user(user_id, {"interval": interval, "state": state_manager.READY_TO_RUN})
+        
+        completion_msg = (
+            "✅ Setup completed successfully!\n\n"
+            "Use /run to start automation\n"
+            "Use /stop to stop automation\n"
+            "Use /status to check status\n"
+            "Use /logs to view activity logs"
+        )
+        await update.message.reply_text(completion_msg)
+        return
+
+    # --- 2. INTENT DETECTION (Pre-AI) ---
+    lower_text = text.lower()
+    if any(keyword in lower_text for keyword in ["start", "run now", "begin automation"]):
+        if state in [state_manager.COMPLETED, state_manager.READY_TO_RUN]:
+            await update.message.reply_text("Triggering automation...")
+            await run_command(update, context)
+            return
+        else:
+            await update.message.reply_text("Please complete /setup first.")
+            return
+            
+    if any(keyword in lower_text for keyword in ["stop", "halt", "pause"]):
+        await update.message.reply_text("Stopping automation...")
+        await stop_command(update, context)
+        return
+
+    # --- 3. AI ASSISTANT (For messy inputs / queries) ---
     # Show typing indicator while LLM processes
     await context.bot.send_chat_action(chat_id=user_id, action='typing')
     
@@ -270,5 +344,5 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(response, parse_mode='Markdown')
         
     except Exception as e:
-        logger.error(f"Error in handle_message: {e}")
+        logger.error(f"Error in AI handler: {e}")
         await update.message.reply_text("❌ An error occurred while processing your message.")

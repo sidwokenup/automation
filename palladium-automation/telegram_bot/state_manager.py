@@ -24,11 +24,13 @@ def get_user_lock(user_id):
     return user_locks[str_user_id]
 
 # States
+IDLE = "IDLE"
 WAITING_USERNAME = "WAITING_USERNAME"
 WAITING_PASSWORD = "WAITING_PASSWORD"
 WAITING_CAMPAIGN = "WAITING_CAMPAIGN"
 WAITING_LINKS = "WAITING_LINKS"
 WAITING_INTERVAL = "WAITING_INTERVAL"
+READY_TO_RUN = "READY_TO_RUN"
 COMPLETED = "COMPLETED"
 
 def load_users():
@@ -110,7 +112,7 @@ def get_user(user_id):
         str_user_id = str(user_id)
         if str_user_id not in users:
             users[str_user_id] = {
-                "state": None,
+                "state": IDLE,
                 "username": "",
                 "password": "",
                 "campaign": "",

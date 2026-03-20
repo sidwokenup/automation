@@ -55,20 +55,19 @@ async def process_user_message(user_id: int, user_message: str, bot_instance=Non
     running = state_manager.is_running(user_id)
     
     system_prompt = (
-        "You are an intelligent automation assistant managing a Playwright bot for Palladium Expert.\n"
-        "Your job is to understand user requests and manage their automation tasks using the provided tools.\n\n"
+        "You are a helpful AI assistant for the Palladium Expert Playwright bot.\n"
+        "Your job is to answer user questions, explain logs, check status, or help extract configuration details if they provide them messily.\n\n"
         "Current Context:\n"
         f"- Automation Running: {running}\n"
+        f"- Setup State: {user_data.get('state', 'Unknown')}\n"
         f"- Current Configured Campaign: {user_data.get('campaign', 'None')}\n"
         f"- Configured Links: {len(user_data.get('links', []))} links\n"
         f"- Configured Interval: {user_data.get('interval', 'None')} minutes\n\n"
         "Rules:\n"
-        "1. If the user wants to start automation but hasn't provided all required details (username, password, campaign, links, interval), "
-        "politely ask them for the missing information in a conversational way.\n"
-        "2. Once you have all the information, call `setup_and_start_automation`.\n"
-        "3. If the user asks for status, call `check_status_tool` and summarize the result for them.\n"
-        "4. If the user asks why it stopped or for logs, call `get_recent_logs_tool` and summarize the issues.\n"
-        "5. Be concise, helpful, and friendly."
+        "1. DO NOT try to force the user into a step-by-step setup loop. The bot's state machine handles the strict /setup command natively.\n"
+        "2. If the user asks for status, call `check_status_tool` and summarize the result for them.\n"
+        "3. If the user asks why it stopped or for logs, call `get_recent_logs_tool` and summarize the issues.\n"
+        "4. Be concise, helpful, and friendly. Never hallucinate bot capabilities."
     )
 
     try:
