@@ -70,24 +70,9 @@ ERROR_COOLDOWN = 300 # 5 minutes
 MAX_ERRORS = 5 # Maximum consecutive errors before stopping automation
 
 from telegram import Bot
+from telegram_bot.utils.notifier import send_telegram_photo, send_telegram_message
 
-def send_telegram_message(token, user_id, text, photo_path=None):
-    """Safely sends a message or photo via Telegram without crashing the thread (Synchronous)."""
-    try:
-        if not token:
-            print("[ERROR] TELEGRAM_BOT_TOKEN not found in environment")
-            return
-
-        bot = Bot(token=token)
-        if photo_path and os.path.exists(photo_path):
-            with open(photo_path, "rb") as photo:
-                # Sync call
-                bot.send_photo(chat_id=user_id, photo=photo, caption=text)
-        else:
-            # Sync call
-            bot.send_message(chat_id=user_id, text=text)
-    except Exception as e:
-        print(f"[ERROR] Telegram send failed: {e}")
+# We no longer need the direct send_telegram_message function here as we use the notifier
 
 # Removed send_error_alert as it is no longer needed (async wrapper)
 
@@ -142,7 +127,7 @@ def get_logs(user_id):
     """Retrieves logs for a specific user."""
     return user_logs.get(str(user_id), [])
 
-def start_automation(user_id, config, logger, bot_instance=None):
+def start_automation(user_id, config, logger, application=None):
     """Starts the automation loop for a user in a separate thread."""
     str_user_id = str(user_id)
     
@@ -171,8 +156,8 @@ def start_automation(user_id, config, logger, bot_instance=None):
         logger.error(f"Campaign {campaign_name} is already in use.")
         raise Exception(f"Campaign '{campaign_name}' is already running. Please stop it first.")
 
-    if bot_instance:
-        user_bots[str_user_id] = bot_instance
+    if application:
+        user_bots[str_user_id] = application
     
     if user_flags.get(str_user_id, False):
         logger.warning(f"Automation already running for user {user_id}")
@@ -383,13 +368,27 @@ def automation_loop(user_id, config, logger):
                         logger.error(f"[User {user_id}] Pre-check screenshot failed: {screenshot_error}")
                         screenshot_path = None
                     
-                    # Send critical error alert (Sync)
-                    msg = f"❌ *Automation Stopped*\n\nCampaign '{campaign_name}' could not be found after multiple retries.\nPlease check the name and try again."
+                    # Send structured error alert via notifier
+                    error_message = f"""❌ *Automation Error*
+
+Campaign: `{campaign_name}`
+
+*Reason:*
+Campaign not found on dashboard.
+
+*Possible causes:*
+• Incorrect campaign name
+• No campaigns in account
+• Login/session issue
+
+_Screenshot attached for debugging._"""
                     
-                    # Fetch token safely
-                    token = os.getenv("TELEGRAM_BOT_TOKEN")
-                    if token:
-                        send_telegram_message(token, user_id, msg, photo_path=screenshot_path)
+                    app_instance = user_bots.get(str(user_id))
+                    if app_instance:
+                        if screenshot_path:
+                            send_telegram_photo(app_instance, user_id, screenshot_path, error_message)
+                        else:
+                            send_telegram_message(app_instance, user_id, error_message)
                     
                     from telegram_bot.state_manager import load_users, save_users
                     users_data = load_users()
@@ -428,10 +427,10 @@ def automation_loop(user_id, config, logger):
                             add_log(user_id, f"Opened campaign (AI recovered): {campaign_name}")
                             
                             # Send Telegram Alert
-                            token = os.getenv("TELEGRAM_BOT_TOKEN")
-                            if token:
+                            app_instance = user_bots.get(str(user_id))
+                            if app_instance:
                                 msg = f"🤖 *AI Self-Healing Triggered*\n\nThe edit button for campaign '{campaign_name}' changed.\nMy AI Vision successfully found the new button and fixed it automatically!\n\nNo action required."
-                                send_telegram_message(token, user_id, msg)
+                                send_telegram_photo(app_instance, user_id, screenshot_path, msg)
                         else:
                             raise Exception(f"AI generated selector '{new_selector}' found 0 elements.")
                     else:
@@ -458,9 +457,9 @@ def automation_loop(user_id, config, logger):
                 
                 # Mark error as resolved if it was active
                 if mark_error_resolved(user_id):
-                     token = os.getenv("TELEGRAM_BOT_TOKEN")
-                     if token:
-                         send_telegram_message(token, user_id, "✅ *Automation Resumed*\n\nSystem has recovered and automation is running normally.")
+                     app_instance = user_bots.get(str(user_id))
+                     if app_instance:
+                         send_telegram_message(app_instance, user_id, "✅ *Automation Resumed*\n\nSystem has recovered and automation is running normally.")
     
                 # Save user data to disk explicitly after status/index change
                 from telegram_bot.state_manager import get_user, save_users, load_users
@@ -518,10 +517,12 @@ def automation_loop(user_id, config, logger):
                         "Please check your campaign settings and try again. If the issue persists, please contact support."
                     )
                     
-                    # Fetch token safely
-                    token = os.getenv("TELEGRAM_BOT_TOKEN")
-                    if token:
-                        send_telegram_message(token, user_id, stop_msg, photo_path=screenshot_path)
+                    app_instance = user_bots.get(str(user_id))
+                    if app_instance:
+                        if screenshot_path:
+                            send_telegram_photo(app_instance, user_id, screenshot_path, stop_msg)
+                        else:
+                            send_telegram_message(app_instance, user_id, stop_msg)
                     
                     from telegram_bot.state_manager import load_users, save_users
                     users_data = load_users()
@@ -556,10 +557,12 @@ def automation_loop(user_id, config, logger):
                         "🔄 The system will automatically recover and continue."
                     )
                     
-                    # Fetch token safely
-                    token = os.getenv("TELEGRAM_BOT_TOKEN")
-                    if token:
-                        send_telegram_message(token, user_id, message, photo_path=screenshot_path)
+                    app_instance = user_bots.get(str(user_id))
+                    if app_instance:
+                        if screenshot_path:
+                            send_telegram_photo(app_instance, user_id, screenshot_path, message)
+                        else:
+                            send_telegram_message(app_instance, user_id, message)
                         mark_error_sent(user_id)
 
                 failure_count += 1

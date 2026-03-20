@@ -333,11 +333,13 @@ def update_target_link(page, new_link, user_id=None):
                         # Send Telegram Alert
                         if user_id:
                             try:
-                                from telegram_bot.automation_runner import send_telegram_message
-                                token = os.getenv("TELEGRAM_BOT_TOKEN")
-                                if token:
+                                from telegram_bot.automation_runner import user_bots
+                                from telegram_bot.utils.notifier import send_telegram_photo
+                                
+                                app_instance = user_bots.get(str(user_id))
+                                if app_instance:
                                     msg = f"🤖 *AI Self-Healing Triggered*\n\nThe 'Save' button changed on the website.\nMy AI Vision successfully found the new button and fixed it automatically!\n\nNo action required."
-                                    send_telegram_message(token, user_id, msg)
+                                    send_telegram_photo(app_instance, user_id, screenshot_path, msg)
                             except:
                                 pass
                     else:
