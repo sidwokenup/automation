@@ -1,16 +1,18 @@
 import os
 import json
 import logging
-from google import genai
-from google.genai import types
+import google.generativeai as genai
 from telegram_bot import state_manager
 from telegram_bot.automation_runner import start_automation, stop_automation, get_status, get_logs
 
 logger = logging.getLogger('palladium_automation.agent')
 
 # Initialize Gemini client
-def get_client():
-    return genai.Client(api_key=os.getenv("GEMINI_API_KEY"))
+def setup_gemini():
+    api_key = os.getenv("GEMINI_API_KEY")
+    if not api_key:
+        raise ValueError("Missing GEMINI_API_KEY in environment variables")
+    genai.configure(api_key=api_key)
 
 # Define the tools available to the LLM using Gemini types
 def setup_and_start_automation(username: str, password: str, campaign: str, links: list[str], interval: int) -> str:
@@ -35,11 +37,10 @@ async def process_user_message(user_id: int, user_message: str, bot_instance=Non
     """
     Sends the user's message to the Gemini LLM, allows it to call tools, and returns the response.
     """
-    if not os.getenv("GEMINI_API_KEY"):
-        return "⚠️ Gemini API key is missing. Please set GEMINI_API_KEY in the .env file to enable the AI Agent."
-
     try:
-        client = get_client()
+        setup_gemini()
+    except ValueError as e:
+        return f"⚠️ {e}. Please check your .env file."
     except Exception as e:
          return f"⚠️ Failed to initialize Gemini Client: {e}"
 
@@ -67,28 +68,27 @@ async def process_user_message(user_id: int, user_message: str, bot_instance=Non
     )
 
     try:
-        # Use synchronous generate_content since google-genai async support might vary, 
-        # but we are in an async function so we wrap it or use the standard call.
-        # For simplicity and stability, we use the standard generate_content
-        
-        chat = client.chats.create(
-            model="gemini-2.5-flash",
-            config=types.GenerateContentConfig(
-                system_instruction=system_prompt,
-                tools=TOOLS,
-                temperature=0.7,
-            )
+        model = genai.GenerativeModel(
+            model_name="gemini-2.5-flash",
+            system_instruction=system_prompt,
+            tools=TOOLS,
+            generation_config={"temperature": 0.7}
         )
+        
+        # Start a chat session
+        chat = model.start_chat()
         
         response = chat.send_message(user_message)
         
         # Check if the model wants to call a tool
-        if getattr(response, "function_calls", None):
-            for tool_call in response.function_calls:
-                function_name = tool_call.name
-                function_args = tool_call.args
-                
-                logger.info(f"Gemini called tool: {function_name} with args: {function_args}")
+        if response.parts and response.parts[0].function_call:
+            for part in response.parts:
+                if part.function_call:
+                    tool_call = part.function_call
+                    function_name = tool_call.name
+                    function_args = type(tool_call).to_dict(tool_call).get("args", {})
+                    
+                    logger.info(f"Gemini called tool: {function_name} with args: {function_args}")
                 
                 tool_result = ""
                 
@@ -137,11 +137,18 @@ async def process_user_message(user_id: int, user_message: str, bot_instance=Non
                     tool_result = "\n".join(logs[-10:]) if logs else "No logs available."
                 
                 # Send the tool result back to the model to get the final response
+                # Format required by google.generativeai
                 second_response = chat.send_message(
-                    [types.Part.from_function_response(
-                        name=function_name,
-                        response={"result": tool_result}
-                    )]
+                    genai.protos.Content(
+                        parts=[
+                            genai.protos.Part(
+                                function_response=genai.protos.FunctionResponse(
+                                    name=function_name,
+                                    response={"result": tool_result}
+                                )
+                            )
+                        ]
+                    )
                 )
                 return second_response.text
             
