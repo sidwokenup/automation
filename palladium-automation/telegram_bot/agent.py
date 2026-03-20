@@ -31,7 +31,11 @@ def get_recent_logs_tool() -> str:
     """Retrieves the recent activity logs for the user's automation to check for errors or progress."""
     pass
 
-TOOLS = [setup_and_start_automation, stop_automation_tool, check_status_tool, get_recent_logs_tool]
+def check_campaign_exists_tool(campaign: str) -> str:
+    """Checks if a specific campaign name exists in the user's configuration history."""
+    pass
+
+TOOLS = [setup_and_start_automation, stop_automation_tool, check_status_tool, get_recent_logs_tool, check_campaign_exists_tool]
 
 async def process_user_message(user_id: int, user_message: str, bot_instance=None) -> str:
     """
@@ -135,9 +139,21 @@ async def process_user_message(user_id: int, user_message: str, bot_instance=Non
                 elif function_name == "get_recent_logs_tool":
                     logs = get_logs(user_id)
                     tool_result = "\n".join(logs[-10:]) if logs else "No logs available."
+                    
+                elif function_name == "check_campaign_exists_tool":
+                    campaign_name = function_args.get("campaign", "")
+                    if user_data.get("campaign") == campaign_name:
+                        tool_result = f"Yes, '{campaign_name}' is your currently configured campaign."
+                    else:
+                        tool_result = f"No, '{campaign_name}' is not your current campaign. Your current campaign is '{user_data.get('campaign', 'None')}'."
                 
                 # Send the tool result back to the model to get the final response
                 # Format required by google.generativeai
+                
+                # Ensure tool_result is a string to prevent API errors
+                if not isinstance(tool_result, str):
+                    tool_result = str(tool_result)
+                    
                 second_response = chat.send_message(
                     genai.protos.Content(
                         parts=[
