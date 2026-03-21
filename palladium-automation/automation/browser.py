@@ -60,7 +60,16 @@ def login(page, username, password):
     
     # Wait for successful navigation (dashboard)
     logger.info("Waiting for navigation to dashboard...")
-    page.wait_for_load_state('networkidle')
+    try:
+        page.wait_for_load_state('networkidle', timeout=15000)
+        
+        # Explicit check: If we are still on login page or see an error message, raise an exception
+        if "login" in page.url.lower() or page.locator("text=Invalid").is_visible(timeout=2000):
+            raise Exception("Login failed: Invalid credentials or server error.")
+            
+    except Exception as e:
+        logger.error(f"Login validation failed: {e}")
+        raise
     
     return True
 
