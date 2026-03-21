@@ -278,16 +278,57 @@ def automation_loop(user_id, config, logger):
     except Exception as e:
         logger.error(f"[User {user_id}] Initial setup failed: {e}")
         add_log(user_id, f"Initial setup failed: {e}")
+        
+        # Capture Screenshot on Login Error
+        screenshot_path = None
+        if page:
+            try:
+                screenshot_filename = f"login_error_{user_id}_{int(time.time())}.png"
+                screenshot_path = os.path.join("logs", screenshot_filename)
+                os.makedirs("logs", exist_ok=True)
+                page.screenshot(path=screenshot_path, full_page=True)
+                logger.info(f"[User {user_id}] Login error screenshot saved: {screenshot_path}")
+            except Exception as screenshot_error:
+                logger.error(f"[User {user_id}] Login screenshot failed: {screenshot_error}")
+                
+        # Send alert via notifier
+        error_message = f"""❌ *Automation Error*
+
+*Reason:*
+{str(e)}
+
+_Screenshot attached for debugging._"""
+        
+        app_instance = user_bots.get(str(user_id))
+        if app_instance:
+            if screenshot_path:
+                send_telegram_photo(app_instance, user_id, screenshot_path, error_message)
+            else:
+                send_telegram_message(app_instance, user_id, error_message)
+
         user_flags[user_id] = False
         if user_id in user_status:
             user_status[user_id]["running"] = False
         release_campaign(campaign_name)
         
+        # Ensure disk state matches memory state on crash/stop
+        from telegram_bot.state_manager import load_users, save_users
+        users_data = load_users()
+        str_user_id = str(user_id)
+        if str_user_id in users_data:
+            users_data[str_user_id]["running"] = False
+            save_users(users_data)
+            
         # Cleanup if failed immediately
         if page: page.close()
         if context: context.close()
         if browser: browser.close()
         if playwright: playwright.stop()
+        
+        # Remove from active threads
+        if str_user_id in active_threads:
+            del active_threads[str_user_id]
+            
         return
 
     link_index = get_current_index(user_id)

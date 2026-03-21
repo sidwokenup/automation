@@ -221,8 +221,8 @@ async def run_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Start automation
     try:
         # Pass the global logger or create a specific one
-        # Pass the bot instance from context
-        start_automation(user_id, user_data, logging.getLogger('palladium_automation.runner'), context.bot)
+        # Pass the application context
+        start_automation(user_id, user_data, logging.getLogger('palladium_automation.runner'), context.application)
         # Note: start_automation now handles setting 'running': True in disk, and shouldn't change state.
         await update.message.reply_text("🚀 Automation started successfully!")
     except Exception as e:
@@ -339,7 +339,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         from telegram_bot.agent import process_user_message
         
         # Pass the message to the AI Agent
-        response = await process_user_message(user_id, text, bot_instance=context.bot)
+        response = await process_user_message(user_id, text, application_instance=context.application)
         
         await update.message.reply_text(response, parse_mode='Markdown')
         

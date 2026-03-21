@@ -37,7 +37,7 @@ def check_campaign_exists_tool(campaign: str) -> str:
 
 TOOLS = [setup_and_start_automation, stop_automation_tool, check_status_tool, get_recent_logs_tool, check_campaign_exists_tool]
 
-async def process_user_message(user_id: int, user_message: str, bot_instance=None) -> str:
+async def process_user_message(user_id: int, user_message: str, application_instance=None) -> str:
     """
     Sends the user's message to the Gemini LLM, allows it to call tools, and returns the response.
     """
@@ -113,7 +113,7 @@ async def process_user_message(user_id: int, user_message: str, bot_instance=Non
                         try:
                             # Start it
                             updated_data = state_manager.get_user(user_id)
-                            start_automation(user_id, updated_data, logging.getLogger('palladium_automation.runner'), bot_instance)
+                            start_automation(user_id, updated_data, logging.getLogger('palladium_automation.runner'), application_instance)
                             tool_result = "Success: Automation started successfully."
                         except Exception as e:
                             tool_result = f"Failed to start: {str(e)}"
