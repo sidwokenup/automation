@@ -36,7 +36,7 @@ def retry_action(action, retries=3):
             time.sleep(3)
 def login(page, username, password):
     """
-    Logs into the website.
+    Logs into the website using SPA-aware multi-strategy detection.
     """
     logger.info("Navigating to login page...")
     page.goto("https://next.palladium.expert")
@@ -47,7 +47,7 @@ def login(page, username, password):
         page.wait_for_selector('input[type="text"]', state='visible', timeout=10000)
     except Exception as e:
         logger.error(f"Error waiting for selectors: {e}")
-        raise
+        raise Exception(f"Login page not fully loaded: {e}")
 
     # Fill credentials
     logger.info("Filling credentials...")
@@ -58,18 +58,34 @@ def login(page, username, password):
     logger.info("Clicking login button...")
     page.click('button[type="submit"]')
     
-    # Wait for successful navigation (dashboard)
-    logger.info("Waiting for navigation to dashboard...")
+    # Add a small stability delay to let React process the click and begin API call
+    time.sleep(2)
+    
+    # Multi-strategy validation
+    logger.info("Waiting for login resolution...")
     try:
+        # Strategy A: Wait for network to settle
         page.wait_for_load_state('networkidle', timeout=15000)
         
-        # Explicit check: If we are still on login page or see an error message, raise an exception
-        if "login" in page.url.lower() or page.locator("text=Invalid").is_visible(timeout=2000):
-            raise Exception("Login failed: Invalid credentials or server error.")
+        # Strategy B & D: Check if we are still stuck on the login page or form is visible
+        if "login" in page.url.lower():
+            raise Exception("Still on login page after attempt.")
+            
+        if page.locator("input[name='email']").is_visible() or page.locator("input[type='password']").is_visible():
+            raise Exception("Login form still visible.")
+            
+        # Optional Strategy C: Wait for a known dashboard element to confirm
+        # Note: Using a soft timeout here so it doesn't crash if the dashboard takes an extra second
+        try:
+            page.wait_for_selector("text=Campaign", timeout=5000)
+        except:
+            logger.warning("Dashboard 'Campaign' text not immediately visible, but login form is gone. Proceeding.")
+            
+        logger.info("Login successful")
             
     except Exception as e:
         logger.error(f"Login validation failed: {e}")
-        raise
+        raise Exception(f"Login failed: {str(e)}")
     
     return True
 
@@ -230,7 +246,8 @@ def open_campaign(page, campaign_name, user_id=None):
         except Exception as e:
             logger.warning(f"Attempt {attempt + 1} failed: {e}")
             if attempt == max_retries - 1:
-                raise Exception("Campaign not found after retries")
+                # Instead of crashing, let's bubble up to the AI Recovery
+                raise Exception(f"Campaign row not found or unclickable after retries: {e}")
             
             page.reload()
             page.wait_for_load_state("networkidle")
@@ -348,6 +365,7 @@ def update_target_link(page, new_link, user_id=None):
                                 app_instance = user_bots.get(str(user_id))
                                 if app_instance:
                                     msg = f"🤖 *AI Self-Healing Triggered*\n\nThe 'Save' button changed on the website.\nMy AI Vision successfully found the new button and fixed it automatically!\n\nNo action required."
+                                    # Ensure screenshot is passed here
                                     send_telegram_photo(app_instance, user_id, screenshot_path, msg)
                             except:
                                 pass
