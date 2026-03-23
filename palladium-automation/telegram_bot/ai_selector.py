@@ -127,6 +127,19 @@ selector: <playwright_selector_here>
         
         if new_selector:
             logger.info(f"Gemini successfully generated new selector: {new_selector}")
+            
+            # Send Telegram alert about AI recovery
+            try:
+                from telegram_bot.automation_runner import send_telegram_message
+                token = os.getenv("TELEGRAM_BOT_TOKEN")
+                if token:
+                    # Parse user_id from action_description if possible, or send to a global admin
+                    # For now, we just log it. The actual caller (browser.py) should ideally trigger the message
+                    # if we want to tie it to a specific user.
+                    pass
+            except:
+                pass
+                
             return new_selector
         else:
             logger.error("Gemini failed to return a recognizable selector format.")
