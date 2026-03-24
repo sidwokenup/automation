@@ -1,4 +1,5 @@
 import os
+import asyncio
 
 def send_telegram_photo(application, user_id, photo_path, caption=""):
     """Safely sends a photo via Telegram from a synchronous thread."""
@@ -15,7 +16,12 @@ def send_telegram_photo(application, user_id, photo_path, caption=""):
                         photo=photo,
                         caption=caption
                     )
-            application.create_task(send())
+            
+            future = asyncio.run_coroutine_threadsafe(
+                send(),
+                application.bot_loop
+            )
+            future.result()
         else:
             print(f"[Notifier Warning] Photo path {photo_path} does not exist. Falling back to message.")
             send_telegram_message(application, user_id, caption)
@@ -29,8 +35,10 @@ def send_telegram_message(application, user_id, text):
         return
         
     try:
-        application.create_task(
-            application.bot.send_message(chat_id=user_id, text=text)
+        future = asyncio.run_coroutine_threadsafe(
+            application.bot.send_message(chat_id=user_id, text=text),
+            application.bot_loop
         )
+        future.result()  # optional: ensures execution
     except Exception as e:
         print(f"[Notifier Error] Failed to send message: {e}")

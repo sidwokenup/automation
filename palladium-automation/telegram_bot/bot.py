@@ -69,6 +69,10 @@ def main():
     try:
         # Create the Application and pass it your bot's token.
         application = ApplicationBuilder().token(token).request(request).build()
+        
+        # Store main event loop for thread-safe operations
+        application.bot_loop = asyncio.get_event_loop()
+        
         bot_app = application
 
         # Add error handler
