@@ -26,19 +26,40 @@ def launch_browser(user_id=None):
     
     proxy_config = None
     if user_id:
-        from telegram_bot.state_manager import get_user
+        from telegram_bot.state_manager import get_user, update_user
         user_data = get_user(user_id)
-        if user_data.get("proxy", {}).get("enabled"):
+        proxy_info = user_data.get("proxy", {})
+        
+        if proxy_info.get("enabled") and proxy_info.get("list"):
+            # Get current proxy from rotation list
+            proxies = proxy_info.get("list", [])
+            current_idx = proxy_info.get("current_index", 0)
+            
+            # Ensure index is valid
+            if current_idx >= len(proxies):
+                current_idx = 0
+                
+            selected_proxy = proxies[current_idx]
+            
             proxy_config = {
-                "server": user_data["proxy"]["server"]
+                "server": selected_proxy["server"]
             }
-            if user_data["proxy"].get("username"):
-                proxy_config["username"] = user_data["proxy"]["username"]
-                proxy_config["password"] = user_data["proxy"]["password"]
+            if selected_proxy.get("username"):
+                proxy_config["username"] = selected_proxy["username"]
+                proxy_config["password"] = selected_proxy["password"]
+                
+            # Rotate for next time
+            next_idx = (current_idx + 1) % len(proxies)
+            proxy_info["current_index"] = next_idx
+            update_user(user_id, {"proxy": proxy_info})
+            logger.info(f"Using proxy {current_idx+1}/{len(proxies)}: {selected_proxy['server']}")
 
     viewport = {"width": random.randint(1280, 1920), "height": random.randint(720, 1080)}
     user_agent = get_random_user_agent()
-    timezone_id = random.choice(["America/New_York", "Europe/London", "Asia/Tokyo", "Europe/Paris"])
+    timezone_id = random.choice(["America/New_York", "Europe/London", "Asia/Tokyo", "Europe/Paris", "America/Los_Angeles", "Australia/Sydney"])
+    locale = random.choice(["en-US", "en-GB", "en-CA", "en-AU"])
+    hardware_concurrency = random.choice([4, 8, 16])
+    device_memory = random.choice([8, 16, 32])
 
     if user_id:
         # Session persistence
@@ -52,11 +73,13 @@ def launch_browser(user_id=None):
             "user_agent": user_agent,
             "viewport": viewport,
             "timezone_id": timezone_id,
+            "locale": locale,
             "args": [
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-gpu",
-                "--disable-blink-features=AutomationControlled"
+                "--disable-blink-features=AutomationControlled",
+                f"--window-size={viewport['width']},{viewport['height']}"
             ]
         }
         if proxy_config:
@@ -66,14 +89,20 @@ def launch_browser(user_id=None):
         context = playwright.chromium.launch_persistent_context(**launch_kwargs)
         browser = context # For consistent return type
         
-        # Stealth mode script to bypass basic webdriver detection
-        context.add_init_script("""
-            Object.defineProperty(navigator, 'webdriver', {
+        # Stealth mode script to bypass basic webdriver detection and spoof hardware
+        context.add_init_script(f"""
+            Object.defineProperty(navigator, 'webdriver', {{
                 get: () => undefined
-            });
-            window.navigator.chrome = {
-                runtime: {}
-            };
+            }});
+            window.navigator.chrome = {{
+                runtime: {{}}
+            }};
+            Object.defineProperty(navigator, 'hardwareConcurrency', {{
+                get: () => {hardware_concurrency}
+            }});
+            Object.defineProperty(navigator, 'deviceMemory', {{
+                get: () => {device_memory}
+            }});
         """)
         
         # Persistent context already has a default page
@@ -119,13 +148,21 @@ def launch_browser(user_id=None):
                             "--no-sandbox",
                             "--disable-dev-shm-usage",
                             "--disable-gpu",
-                            "--disable-blink-features=AutomationControlled"
+                            "--disable-blink-features=AutomationControlled",
+                            f"--window-size={viewport['width']},{viewport['height']}"
                         ]
                     )
-                    context = browser.new_context(user_agent=user_agent, viewport=viewport, timezone_id=timezone_id)
-                    context.add_init_script("""
-                        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-                        window.navigator.chrome = { runtime: {} };
+                    context = browser.new_context(
+                        user_agent=user_agent, 
+                        viewport=viewport, 
+                        timezone_id=timezone_id,
+                        locale=locale
+                    )
+                    context.add_init_script(f"""
+                        Object.defineProperty(navigator, 'webdriver', {{ get: () => undefined }});
+                        window.navigator.chrome = {{ runtime: {{}} }};
+                        Object.defineProperty(navigator, 'hardwareConcurrency', {{ get: () => {hardware_concurrency} }});
+                        Object.defineProperty(navigator, 'deviceMemory', {{ get: () => {device_memory} }});
                     """)
                     page = context.new_page()
                     stealth_sync(page)
@@ -133,6 +170,7 @@ def launch_browser(user_id=None):
 
         return playwright, context, page
     else:
+        logger.info("Launching standard browser...")
         browser = playwright.chromium.launch(
             headless=False,
             executable_path="/usr/bin/chromium-browser",
@@ -140,22 +178,31 @@ def launch_browser(user_id=None):
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-gpu",
-                "--disable-blink-features=AutomationControlled"
+                "--disable-blink-features=AutomationControlled",
+                f"--window-size={viewport['width']},{viewport['height']}"
             ]
         )
         context = browser.new_context(
             user_agent=user_agent,
             viewport=viewport,
-            timezone_id=timezone_id
+            timezone_id=timezone_id,
+            locale=locale
         )
-        context.add_init_script("""
-            Object.defineProperty(navigator, 'webdriver', {
+        context.add_init_script(f"""
+            Object.defineProperty(navigator, 'webdriver', {{
                 get: () => undefined
-            });
-            window.navigator.chrome = {
-                runtime: {}
-            };
+            }});
+            window.navigator.chrome = {{
+                runtime: {{}}
+            }};
+            Object.defineProperty(navigator, 'hardwareConcurrency', {{
+                get: () => {hardware_concurrency}
+            }});
+            Object.defineProperty(navigator, 'deviceMemory', {{
+                get: () => {device_memory}
+            }});
         """)
+        logger.info("Creating new page...")
         page = context.new_page()
         stealth_sync(page)
         return playwright, browser, page
@@ -279,6 +326,8 @@ def login(page, username, password):
             for char in username:
                 page.keyboard.press(char)
                 time.sleep(random.uniform(0.05, 0.2))
+                if random.random() < 0.1: # 10% chance to pause slightly
+                    time.sleep(random.uniform(0.2, 0.6))
             
             time.sleep(random.uniform(1.0, 2.5))
             
@@ -288,6 +337,8 @@ def login(page, username, password):
             for char in password:
                 page.keyboard.press(char)
                 time.sleep(random.uniform(0.05, 0.2))
+                if random.random() < 0.1: # 10% chance to pause slightly
+                    time.sleep(random.uniform(0.2, 0.6))
             
             # Human delay before clicking
             time.sleep(random.uniform(1.5, 3.5))
@@ -334,11 +385,19 @@ def login(page, username, password):
             for val_attempt in range(4): # Poll up to 4 times
                 logger.info(f"Checking login success (Validation {val_attempt+1})...")
                 
+                # Check for captcha
+                if page.locator("iframe[src*='captcha']").is_visible() or page.locator("text=Verify you are human").is_visible():
+                    logger.error("Captcha detected during login.")
+                    raise Exception("Captcha challenge presented. Manual intervention required.")
+
                 # Explicit failure check
                 if page.locator("input[name='email']").is_visible() or page.locator("input[type='password']").is_visible():
                     if page.locator("text=Login Error").is_visible(timeout=1000) or page.locator("text=Invalid").is_visible(timeout=1000) or page.locator("text=Error").is_visible(timeout=1000):
                         logger.error("Explicit login error detected on page.")
-                        raise Exception("Login failed due to server/validation error")
+                        raise Exception("Login failed due to invalid credentials or server error")
+                    if page.locator("text=rate limit").is_visible(timeout=1000) or page.locator("text=Too many").is_visible(timeout=1000):
+                        logger.error("Rate limit detected on page.")
+                        raise Exception("Login failed due to rate limiting (too many attempts)")
                 
                 if is_login_successful(page):
                     logger.info("Login successful")
@@ -356,17 +415,16 @@ def login(page, username, password):
                 
         except Exception as e:
             logger.warning(f"Login attempt {attempt+1} failed explicitly: {e}")
-            if "server/validation error" in str(e):
-                 # Clear failure (wrong credentials or explicit block), don't retry aggressively
+            e_str = str(e).lower()
+            if "invalid credentials" in e_str or "server error" in e_str or "captcha" in e_str or "rate limit" in e_str:
+                 # Clear failure (wrong credentials, explicit block, or captcha), don't retry aggressively
                  raise e
                  
-            if attempt == 2:
+            if attempt == 1: # We are looping 2 times now (attempt 0, 1)
                 raise e
             # Smart retry backoff
             if attempt == 0:
-                backoff_time = random.uniform(30, 60) # 30-60s for 2nd attempt
-            else:
-                backoff_time = random.uniform(120, 300) # 2-5m for 3rd attempt
+                backoff_time = random.uniform(300, 900) # 5-15 mins for retry
                 
             logger.info(f"Waiting {backoff_time:.1f}s before retrying login...")
             time.sleep(backoff_time)

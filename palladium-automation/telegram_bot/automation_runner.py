@@ -313,13 +313,13 @@ def automation_loop(user_id, config, logger):
                 
         # Send alert via notifier
         error_reason = str(e)
-        if "Login failed" in error_reason or "login attempts" in error_reason:
+        if "Login failed" in error_reason or "login attempts" in error_reason or "Captcha challenge" in error_reason:
             error_message = f"""❌ *Login Failed*
             
 Possible reasons:
 • Invalid credentials
 • IP blocked or rate limited
-• Bot detection triggered
+• Bot detection triggered (Captcha)
 • Temporary server issue
 
 💡 *Recommendation:*

@@ -221,21 +221,34 @@ async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(response, parse_mode='Markdown')
 
 def parse_proxy(proxy_string):
-    """Parses a proxy string into a dictionary."""
+    """Parses a proxy string (or multiple separated by comma) into a list of dictionaries."""
     try:
-        if "@" in proxy_string:
-            creds, host = proxy_string.split("@")
-            username, password = creds.split(":")
-            ip, port = host.split(":")
-        else:
-            username = password = None
-            ip, port = proxy_string.split(":")
+        proxies = []
+        # Split by comma to support multiple proxies
+        proxy_strings = [p.strip() for p in proxy_string.split(",") if p.strip()]
+        
+        for p_str in proxy_strings:
+            if "@" in p_str:
+                creds, host = p_str.split("@")
+                username, password = creds.split(":")
+                ip, port = host.split(":")
+            else:
+                username = password = None
+                ip, port = p_str.split(":")
+                
+            proxies.append({
+                "server": f"http://{ip}:{port}",
+                "username": username,
+                "password": password
+            })
+            
+        if not proxies:
+            return None
             
         return {
             "enabled": True,
-            "server": f"http://{ip}:{port}",
-            "username": username,
-            "password": password
+            "list": proxies,
+            "current_index": 0
         }
     except Exception:
         return None
@@ -259,8 +272,11 @@ async def proxy_status_command(update: Update, context: ContextTypes.DEFAULT_TYP
     user_data = state_manager.get_user(user_id)
     
     proxy_info = user_data.get("proxy", {})
-    if proxy_info.get("enabled"):
-        msg = f"🌐 Proxy Status: Enabled\nServer: {proxy_info.get('server')}"
+    if proxy_info.get("enabled") and proxy_info.get("list"):
+        count = len(proxy_info["list"])
+        current_idx = proxy_info.get("current_index", 0)
+        current_server = proxy_info["list"][current_idx]["server"]
+        msg = f"🌐 Proxy Status: Enabled\nTotal Proxies: {count}\nCurrent Server: {current_server}"
     else:
         msg = "🌐 Proxy Status: Disabled"
         
@@ -478,7 +494,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     elif state == state_manager.WAITING_PROXY_CHOICE:
         if lower_text in ["yes", "y", "true"]:
             state_manager.set_state(user_id, state_manager.WAITING_PROXY_INPUT)
-            await update.message.reply_text("Enter proxy in format:\n`ip:port` OR `username:password@ip:port`", parse_mode='Markdown')
+            await update.message.reply_text("Enter proxy (or multiple separated by comma) in format:\n`ip:port` OR `username:password@ip:port`", parse_mode='Markdown')
         else:
             state_manager.update_user(user_id, {"proxy": {"enabled": False}, "state": state_manager.COMPLETED})
             await update.message.reply_text("🌐 Proxy disabled. Use /run to start automation.")
