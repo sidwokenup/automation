@@ -12,7 +12,7 @@ from telegram.error import NetworkError, TelegramError
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.logger import setup_logger
-from telegram_bot.handlers import start_command, help_command, status_command, setup_command, handle_message, run_command, stop_command, logs_command, users_command, progress_command
+from telegram_bot.handlers import start_command, help_command, status_command, setup_command, handle_message, run_command, stop_command, logs_command, users_command, progress_command, proxy_command, proxy_status_command
 
 # Global variable to store the bot application instance
 bot_app = None
@@ -80,6 +80,8 @@ def main():
         application.add_handler(CommandHandler("stop", stop_command))
         application.add_handler(CommandHandler("logs", logs_command))
         application.add_handler(CommandHandler("users", users_command))
+        application.add_handler(CommandHandler("proxy", proxy_command))
+        application.add_handler(CommandHandler("proxy_status", proxy_status_command))
 
         # Register message handler for setup flow
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))

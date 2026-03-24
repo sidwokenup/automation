@@ -13,22 +13,38 @@ def launch_browser(user_id=None):
     logger.info("Starting Playwright...")
     playwright = sync_playwright().start()
     
+    proxy_config = None
+    if user_id:
+        from telegram_bot.state_manager import get_user
+        user_data = get_user(user_id)
+        if user_data.get("proxy", {}).get("enabled"):
+            proxy_config = {
+                "server": user_data["proxy"]["server"]
+            }
+            if user_data["proxy"].get("username"):
+                proxy_config["username"] = user_data["proxy"]["username"]
+                proxy_config["password"] = user_data["proxy"]["password"]
+
     if user_id:
         # Session persistence
         user_data_dir = os.path.join(os.getcwd(), "sessions", str(user_id))
         os.makedirs(user_data_dir, exist_ok=True)
         
-        context = playwright.chromium.launch_persistent_context(
-            user_data_dir=user_data_dir,
-            headless=True,
-            executable_path="/usr/bin/chromium-browser",
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
-            args=[
+        launch_kwargs = {
+            "user_data_dir": user_data_dir,
+            "headless": True,
+            "executable_path": "/usr/bin/chromium-browser",
+            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+            "args": [
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-gpu"
             ]
-        )
+        }
+        if proxy_config:
+            launch_kwargs["proxy"] = proxy_config
+            
+        context = playwright.chromium.launch_persistent_context(**launch_kwargs)
         # Stealth mode script to bypass basic webdriver detection
         context.add_init_script("""
             Object.defineProperty(navigator, 'webdriver', {

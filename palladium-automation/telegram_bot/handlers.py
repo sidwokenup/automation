@@ -220,6 +220,52 @@ async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     await update.message.reply_text(response, parse_mode='Markdown')
 
+def parse_proxy(proxy_string):
+    """Parses a proxy string into a dictionary."""
+    try:
+        if "@" in proxy_string:
+            creds, host = proxy_string.split("@")
+            username, password = creds.split(":")
+            ip, port = host.split(":")
+        else:
+            username = password = None
+            ip, port = proxy_string.split(":")
+            
+        return {
+            "enabled": True,
+            "server": f"http://{ip}:{port}",
+            "username": username,
+            "password": password
+        }
+    except Exception:
+        return None
+
+async def proxy_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the /proxy command to start proxy configuration."""
+    user = update.effective_user
+    user_id = user.id
+    
+    if state_manager.is_running(user_id):
+        await update.message.reply_text("⚠️ Automation is currently running. Please /stop it before configuring proxy.")
+        return
+        
+    state_manager.set_state(user_id, state_manager.WAITING_PROXY_CHOICE)
+    await update.message.reply_text("🌐 Do you want to use a proxy? (yes/no)")
+
+async def proxy_status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the /proxy_status command."""
+    user = update.effective_user
+    user_id = user.id
+    user_data = state_manager.get_user(user_id)
+    
+    proxy_info = user_data.get("proxy", {})
+    if proxy_info.get("enabled"):
+        msg = f"🌐 Proxy Status: Enabled\nServer: {proxy_info.get('server')}"
+    else:
+        msg = "🌐 Proxy Status: Disabled"
+        
+    await update.message.reply_text(msg)
+
 async def setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /setup command to start the configuration flow."""
     user = update.effective_user
@@ -419,6 +465,25 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             "Use /logs to view activity logs"
         )
         await update.message.reply_text(completion_msg)
+        return
+
+    elif state == state_manager.WAITING_PROXY_CHOICE:
+        if lower_text in ["yes", "y", "true"]:
+            state_manager.set_state(user_id, state_manager.WAITING_PROXY_INPUT)
+            await update.message.reply_text("Enter proxy in format:\n`ip:port` OR `username:password@ip:port`", parse_mode='Markdown')
+        else:
+            state_manager.update_user(user_id, {"proxy": {"enabled": False}, "state": state_manager.COMPLETED})
+            await update.message.reply_text("🌐 Proxy disabled. Use /run to start automation.")
+        return
+
+    elif state == state_manager.WAITING_PROXY_INPUT:
+        proxy_data = parse_proxy(text)
+        if not proxy_data:
+            await update.message.reply_text("❌ Invalid proxy format. Please use `ip:port` or `username:password@ip:port`", parse_mode='Markdown')
+            return
+            
+        state_manager.update_user(user_id, {"proxy": proxy_data, "state": state_manager.COMPLETED})
+        await update.message.reply_text("✅ Proxy configured successfully!\nUse /proxy_status to verify.")
         return
 
     # --- 4. AI ASSISTANT (For messy inputs / queries) ---

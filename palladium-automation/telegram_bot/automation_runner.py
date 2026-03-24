@@ -308,13 +308,17 @@ def automation_loop(user_id, config, logger):
             error_message = f"""❌ *Login Failed*
             
 Possible reasons:
-• Too many attempts (rate limit)
+• IP temporarily blocked
+• Too many login attempts
 • Bot detection triggered
-• Temporary server block
 
-_Reason: {error_reason}_
+💡 *Recommendation:*
+Try using a proxy to bypass IP restrictions.
 
-⏳ Please wait 1–2 minutes before retrying."""
+Use:
+/proxy to configure proxy
+
+⏳ Wait 1–2 minutes before retrying"""
         else:
             error_message = f"""❌ *Automation Error*
 
