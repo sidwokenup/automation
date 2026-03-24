@@ -20,21 +20,29 @@ def launch_browser(user_id=None):
         
         context = playwright.chromium.launch_persistent_context(
             user_data_dir=user_data_dir,
-            headless=False,
+            headless=True,
             executable_path="/usr/bin/chromium-browser",
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
             args=[
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-gpu"
             ]
         )
+        # Stealth mode script to bypass basic webdriver detection
+        context.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+        """)
+        
         # Persistent context already has a default page
         pages = context.pages
         page = pages[0] if pages else context.new_page()
         return playwright, context, page
     else:
         browser = playwright.chromium.launch(
-            headless=False,
+            headless=True,
             executable_path="/usr/bin/chromium-browser",
             args=[
                 "--no-sandbox",
@@ -42,7 +50,14 @@ def launch_browser(user_id=None):
                 "--disable-gpu"
             ]
         )
-        context = browser.new_context()
+        context = browser.new_context(
+            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+        )
+        context.add_init_script("""
+            Object.defineProperty(navigator, 'webdriver', {
+                get: () => undefined
+            });
+        """)
         page = context.new_page()
         return playwright, browser, page
 
