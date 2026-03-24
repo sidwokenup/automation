@@ -239,15 +239,17 @@ def is_login_successful(page):
     """
     signals = 0
     
+    print(f"[DEBUG] Current URL: {page.url}")
+    
     # Signal 1: URL change (not on login page)
     current_url = page.url.lower()
-    if "login" not in current_url and ("dashboard" in current_url or "campaign" in current_url):
+    if "dashboard" in current_url or "campaign" in current_url:
         logger.info("Login Signal: URL changed to dashboard/campaign.")
         signals += 1
         
     # Signal 2: Dashboard element exists (any common element)
     try:
-        if page.locator("text=Campaign").count() > 0 or page.locator("table").count() > 0 or page.locator("tr").count() > 0:
+        if page.locator("text=Campaign").is_visible():
             logger.info("Login Signal: Dashboard UI elements detected.")
             signals += 1
     except:
@@ -255,35 +257,24 @@ def is_login_successful(page):
         
     # Signal 3: Logout/Profile button exists
     try:
-        if page.locator("text=Logout").count() > 0 or page.locator("text=Profile").count() > 0:
+        if page.locator("button:has-text('Logout')").is_visible():
             logger.info("Login Signal: User profile/logout button detected.")
             signals += 1
     except:
         pass
         
-    # Signal 4: Cookies/session present
+    # Signal 4: Absence of login form
     try:
-        cookies = page.context.cookies()
-        if len(cookies) > 0:
-            logger.info(f"Login Signal: Found {len(cookies)} cookies.")
+        login_fields = page.locator("input[type='text']")
+        if login_fields.count() == 0:
+            logger.info("Login Signal: Login form absent.")
             signals += 1
     except:
         pass
 
-    # Signal 5: LocalStorage tokens
-    try:
-        local_storage = page.evaluate("Object.keys(localStorage)")
-        if len(local_storage) > 0:
-            logger.info(f"Login Signal: Found {len(local_storage)} localStorage keys: {local_storage}")
-            signals += 1
-    except:
-        pass
-
-    logger.info(f"Total positive login signals: {signals}")
+    logger.info(f"[Login Detection] Signals: {signals}")
     
-    if signals >= 2:
-        return True
-    return False
+    return signals >= 2
 
 def simulate_mouse_movement(page):
     """Simulates smooth human-like mouse movement across the screen."""
@@ -309,8 +300,11 @@ def login(page, username, password):
         logger.info("Session already active, skipping login.")
         return True
 
-    # Limit to 2 retries (Attempt 1 + 1 retry) for smarter retry logic
-    for attempt in range(2):
+    MAX_RETRIES = 5
+    RETRY_DELAYS = [3, 5, 8, 10, 15]  # seconds
+
+    # Limit to MAX_RETRIES attempts
+    for attempt in range(MAX_RETRIES):
         try:
             logger.info(f"Navigating to login page (Attempt {attempt+1})...")
             page.goto("https://next.palladium.expert")
@@ -381,21 +375,17 @@ def login(page, username, password):
             page.click('button[type="submit"]')
             
             # Human delay after login
-            time.sleep(random.uniform(5.0, 10.0))
+            time.sleep(random.uniform(2.0, 4.0))
             
             # Smart wait
             logger.info("Waiting for login resolution...")
             try:
                 # Wait for navigation OR network idle
                 page.wait_for_load_state('networkidle', timeout=15000)
+                page.wait_for_timeout(3000)
             except:
                 logger.warning("Network idle timeout during login. Proceeding to validation.")
                 
-            # Dynamic wait (3-8 seconds) and polling
-            wait_time = random.uniform(3.0, 8.0)
-            logger.info(f"Dynamic wait for {wait_time:.1f} seconds to allow SPA rendering...")
-            time.sleep(wait_time)
-            
             # Validation logic
             login_success = False
             for val_attempt in range(4): # Poll up to 4 times
@@ -416,7 +406,7 @@ def login(page, username, password):
                         raise Exception("Login failed due to rate limiting (too many attempts)")
                 
                 if is_login_successful(page):
-                    logger.info("Login successful")
+                    logger.info("✅ Login successful")
                     login_success = True
                     break
                     
@@ -425,25 +415,34 @@ def login(page, username, password):
             if login_success:
                 return True
             else:
-                logger.warning("Login validation uncertain. Continuing flow as 'Login Possibly Successful'...")
-                # Fallback state: don't raise exception, just return True and let subsequent steps fail if it really didn't work.
-                return True
+                raise Exception("Login validation failed")
                 
         except Exception as e:
             logger.warning(f"Login attempt {attempt+1} failed explicitly: {e}")
             e_str = str(e).lower()
-            if "invalid credentials" in e_str or "server error" in e_str or "captcha" in e_str or "rate limit" in e_str:
-                 # Clear failure (wrong credentials, explicit block, or captcha), don't retry aggressively
+            
+            # Immediately fail on critical errors that retries won't fix
+            if "invalid credentials" in e_str or "captcha" in e_str:
                  raise e
                  
-            if attempt == 1: # We are looping 2 times now (attempt 0, 1)
-                raise e
-            # Smart retry backoff
-            if attempt == 0:
-                backoff_time = random.uniform(300, 900) # 5-15 mins for retry
+            if attempt >= MAX_RETRIES - 1:
+                raise Exception(f"Login failed after {MAX_RETRIES} attempts.")
+            
+            # Smart retry backoff based on error type
+            if "timeout" in e_str:
+                wait_time = 5
+            elif "proxy" in e_str or "net::" in e_str:
+                wait_time = 2
+            elif "rate limit" in e_str or "too many" in e_str or "blocked" in e_str:
+                wait_time = 10
+            else:
+                wait_time = RETRY_DELAYS[min(attempt, len(RETRY_DELAYS) - 1)]
                 
-            logger.info(f"Waiting {backoff_time:.1f}s before retrying login...")
-            time.sleep(backoff_time)
+            # Cap the max wait time to 15 seconds to ensure speed
+            wait_time = min(wait_time, 15)
+                
+            logger.info(f"[Retry] Attempt {attempt+2} in {wait_time}s")
+            time.sleep(wait_time)
             
     raise Exception("Login failed after all retries.")
 

@@ -408,11 +408,14 @@ def automation_loop(user_id, config, logger):
         screenshot_path = None
         if page:
             try:
-                screenshot_filename = f"login_error_{user_id}_{int(time.time())}.png"
+                # Screenshot Labeling Fix
+                is_success = "success" in e_str or "validation failed" not in e_str and "dashboard" in page.url.lower()
+                prefix = "login_success" if is_success else "login_failed"
+                screenshot_filename = f"{prefix}_{user_id}_{int(time.time())}.png"
                 screenshot_path = os.path.join("logs", screenshot_filename)
                 os.makedirs("logs", exist_ok=True)
                 page.screenshot(path=screenshot_path, full_page=True)
-                logger.info(f"[User {user_id}] Login error screenshot saved: {screenshot_path}")
+                logger.info(f"[User {user_id}] Login screenshot saved: {screenshot_path}")
                 
                 # Try to grab current URL for debugging context
                 try:
