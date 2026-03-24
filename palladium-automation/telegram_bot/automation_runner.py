@@ -288,8 +288,16 @@ def automation_loop(user_id, config, logger):
         login(page, config["username"], config["password"])
         add_log(user_id, "Login successful")
     except Exception as e:
+        error_msg = str(e)
         logger.error(f"[User {user_id}] Initial setup failed: {e}")
         add_log(user_id, f"Initial setup failed: {e}")
+        
+        # Intelligence Layer: Classify and Decide
+        from telegram_bot.intelligence.error_classifier import classify_error, ErrorType
+        from telegram_bot.intelligence.decision_engine import decide_action, ActionType, get_user_friendly_message
+        
+        error_type = classify_error(error_msg)
+        action = decide_action(error_type)
         
         # Capture Screenshot on Login Error
         screenshot_path = None
@@ -311,44 +319,26 @@ def automation_loop(user_id, config, logger):
             except Exception as screenshot_error:
                 logger.error(f"[User {user_id}] Login screenshot failed: {screenshot_error}")
                 
-        # Send alert via notifier
-        error_reason = str(e)
-        if "Login failed" in error_reason or "login attempts" in error_reason or "Captcha challenge" in error_reason:
-            error_message = f"""❌ *Login Failed*
+        # Handle based on Intelligence
+        if action == ActionType.STOP or error_type in [ErrorType.AUTH, ErrorType.CAPTCHA]:
+            error_message = get_user_friendly_message(error_type, error_msg)
             
-Possible reasons:
-• Invalid credentials
-• IP blocked or rate limited
-• Bot detection triggered (Captcha)
-• Temporary server issue
-
-💡 *Recommendation:*
-1. Wait 5–10 minutes before retrying
-2. Try a different network or proxy (/proxy)
-3. Use a residential proxy for best results
-
-_Reason: {error_reason}_"""
-            
-            # Apply global cooldown safely
-            try:
-                cooldown = time.time() + random.uniform(120, 300)
-            except Exception as rand_e:
-                logger.error(f"Error calculating cooldown: {rand_e}")
-                cooldown = time.time() + 180  # fallback to 3 minutes
-                
-            logger.info(f"Applying cooldown for user {user_id}: {cooldown}")
-            try:
-                from telegram_bot.state_manager import update_user
-                update_user(user_id, {"global_cooldown_until": cooldown})
-            except Exception as e:
-                logger.error(f"Failed to update global cooldown state for {user_id}: {e}")
+            # Apply global cooldown for RATE_LIMIT safely
+            if error_type == ErrorType.RATE_LIMIT:
+                try:
+                    cooldown = time.time() + random.uniform(300, 900) # 5-15 mins
+                except Exception as rand_e:
+                    logger.error(f"Error calculating cooldown: {rand_e}")
+                    cooldown = time.time() + 300
+                    
+                logger.info(f"Applying cooldown for user {user_id}: {cooldown}")
+                try:
+                    from telegram_bot.state_manager import update_user
+                    update_user(user_id, {"global_cooldown_until": cooldown})
+                except Exception as e_update:
+                    logger.error(f"Failed to update global cooldown state for {user_id}: {e_update}")
         else:
-            error_message = f"""❌ *Automation Error*
-
-*Reason:*
-{error_reason}
-
-_Screenshot attached for debugging._"""
+            error_message = f"""❌ *Automation Error*\n\n*Reason:*\n{error_msg}\n\n_Screenshot attached for debugging._"""
         
         app_instance = user_bots.get(str(user_id))
         if app_instance:
@@ -499,34 +489,40 @@ _Screenshot attached for debugging._"""
                     open_campaign(page, campaign_name, user_id=user_id)
                     add_log(user_id, f"Opened campaign: {campaign_name}")
                 except Exception as open_err:
-                    logger.warning(f"Original open_campaign failed: {open_err}. Triggering AI recovery...")
+                    from telegram_bot.intelligence.error_classifier import classify_error, ErrorType
                     
-                    # Take screenshot and get HTML for AI
-                    os.makedirs("logs", exist_ok=True)
-                    screenshot_path = f"logs/ai_recovery_open_{int(time.time())}.png"
-                    page.screenshot(path=screenshot_path)
-                    html_content = page.content()
-                    
-                    action_desc = f"Click the 'Edit' or 'Settings' button for the campaign named '{campaign_name}'."
-                    new_selector = generate_selector_with_gemini(html_content, screenshot_path, action_desc)
-                    
-                    if new_selector:
-                        btn = page.locator(new_selector)
-                        if btn.count() > 0:
-                            logger.info(f"AI Recovery successful. Clicking new selector: {new_selector}")
-                            btn.first.click()
-                            page.wait_for_url("**/change/**", timeout=15000)
-                            add_log(user_id, f"Opened campaign (AI recovered): {campaign_name}")
-                            
-                            # Send Telegram Alert
-                            app_instance = user_bots.get(str(user_id))
-                            if app_instance:
-                                msg = f"🤖 *AI Self-Healing Triggered*\n\nThe edit button for campaign '{campaign_name}' changed.\nMy AI Vision successfully found the new button and fixed it automatically!\n\nNo action required."
-                                send_telegram_photo(app_instance, user_id, screenshot_path, msg)
+                    if classify_error(str(open_err)) == ErrorType.SELECTOR:
+                        logger.warning(f"Original open_campaign failed: {open_err}. Triggering AI recovery...")
+                        
+                        # Take screenshot and get HTML for AI
+                        os.makedirs("logs", exist_ok=True)
+                        screenshot_path = f"logs/ai_recovery_open_{int(time.time())}.png"
+                        page.screenshot(path=screenshot_path)
+                        html_content = page.content()
+                        
+                        action_desc = f"Click the 'Edit' or 'Settings' button for the campaign named '{campaign_name}'."
+                        new_selector = generate_selector_with_gemini(html_content, screenshot_path, action_desc)
+                        
+                        if new_selector:
+                            btn = page.locator(new_selector)
+                            if btn.count() > 0:
+                                logger.info(f"AI Recovery successful. Clicking new selector: {new_selector}")
+                                btn.first.click()
+                                page.wait_for_url("**/change/**", timeout=15000)
+                                add_log(user_id, f"Opened campaign (AI recovered): {campaign_name}")
+                                
+                                # Send Telegram Alert
+                                app_instance = user_bots.get(str(user_id))
+                                if app_instance:
+                                    msg = f"🤖 *AI Self-Healing Triggered*\n\nThe edit button for campaign '{campaign_name}' changed.\nMy AI Vision successfully found the new button and fixed it automatically!\n\nNo action required."
+                                    send_telegram_photo(app_instance, user_id, screenshot_path, msg)
+                            else:
+                                raise Exception(f"AI generated selector '{new_selector}' found 0 elements.")
                         else:
-                            raise Exception(f"AI generated selector '{new_selector}' found 0 elements.")
+                            raise Exception("Failed to open campaign and AI recovery failed.")
                     else:
-                        raise Exception("Failed to open campaign and AI recovery failed.")
+                        # Re-raise if not a selector error to be handled by the main exception handler
+                        raise open_err
                 
                 # The update_target_link already has internal AI recovery now
                 update_target_link(page, current_link, user_id=user_id)
@@ -590,6 +586,13 @@ _Screenshot attached for debugging._"""
                 logger.error(f"[User {user_id}] Recoverable error during automation cycle: {e}. Error count: {error_count}/{MAX_ERRORS}")
                 add_log(user_id, f"Recoverable error: {error_msg} (Count: {error_count})")
                 
+                # Intelligence Layer: Classify and Decide
+                from telegram_bot.intelligence.error_classifier import classify_error, ErrorType
+                from telegram_bot.intelligence.decision_engine import decide_action, ActionType, get_user_friendly_message
+                
+                error_type = classify_error(error_msg)
+                action = decide_action(error_type)
+                
                 # Capture Screenshot on Error
                 screenshot_path = None
                 try:
@@ -602,15 +605,21 @@ _Screenshot attached for debugging._"""
                     logger.error(f"[User {user_id}] Screenshot failed: {screenshot_error}")
                     screenshot_path = None
                 
-                # Check for Max Error Limit
-                if error_count >= MAX_ERRORS:
-                    logger.error(f"[User {user_id}] Max error limit reached ({MAX_ERRORS}). Stopping automation to prevent infinite loop.")
-                    add_log(user_id, "❌ Max error limit reached. Stopping automation.")
+                # Handle STOP action (Auth, Captcha, or Max Errors)
+                if action == ActionType.STOP or error_count >= MAX_ERRORS:
+                    if error_count >= MAX_ERRORS:
+                        logger.error(f"[User {user_id}] Max error limit reached ({MAX_ERRORS}). Stopping automation.")
+                        stop_reason = f"Reached maximum limit of {MAX_ERRORS} consecutive errors."
+                    else:
+                        logger.error(f"[User {user_id}] Critical error detected ({error_type.name}). Stopping automation.")
+                        stop_reason = get_user_friendly_message(error_type, error_msg)
+                        
+                    add_log(user_id, "❌ Critical error or max limit reached. Stopping automation.")
                     
                     stop_msg = (
-                        "❌ *Automation Stopped*\n\n"
-                        f"Reason: Reached maximum limit of {MAX_ERRORS} consecutive errors.\n"
-                        "Please check your campaign settings and try again. If the issue persists, please contact support."
+                        f"❌ *Automation Stopped*\n\n"
+                        f"{stop_reason}\n\n"
+                        "Please check your campaign settings and try again."
                     )
                     
                     app_instance = user_bots.get(str(user_id))
@@ -624,31 +633,43 @@ _Screenshot attached for debugging._"""
                     users_data = load_users()
                     if str(user_id) in users_data:
                         users_data[str(user_id)]["running"] = False
-                        # Do NOT modify state here
                         save_users(users_data)
                         
                     stop_automation(user_id)
                     continue
                 
+                # Handle WAIT action (Rate Limit)
+                if action == ActionType.WAIT:
+                    cooldown_minutes = random.uniform(5, 15)
+                    wait_seconds = int(cooldown_minutes * 60)
+                    logger.warning(f"[User {user_id}] Rate limited. Waiting for {wait_seconds} seconds.")
+                    
+                    # Store in user state
+                    try:
+                        from telegram_bot.state_manager import update_user
+                        update_user(user_id, {"global_cooldown_until": time.time() + wait_seconds})
+                    except Exception as e_update:
+                        logger.error(f"Failed to update cooldown state: {e_update}")
+                    
+                    app_instance = user_bots.get(str(user_id))
+                    if app_instance and should_send_error(user_id):
+                        msg = get_user_friendly_message(error_type)
+                        send_telegram_message(app_instance, user_id, f"{msg}\n\nCooldown: {int(cooldown_minutes)} minutes.")
+                        mark_error_sent(user_id)
+                        
+                    wait_with_interrupt(user_id, wait_seconds)
+                    continue
+                    
+                # Handle RETRY and SELF_HEAL (Self-heal logic is in open_campaign, so we just retry here)
                 # Send alert if cooldown passed
-                
-                # Determine user-friendly error reason
-                reason = "Unknown Error"
-                err_lower = error_msg.lower()
-                if "timeout" in err_lower:
-                    reason = "Page load timeout (slow server)"
-                elif "selector" in err_lower or "found" in err_lower:
-                    reason = "Element not found (UI changed or not loaded)"
-                elif "login" in err_lower or "session" in err_lower:
-                    reason = "Session expired or invalid"
-                elif "network" in err_lower:
-                    reason = "Network connectivity issue"
-
                 if should_send_error(user_id):
+                    # Determine user-friendly error reason
+                    reason = get_user_friendly_message(error_type, error_msg)
+
                     message = (
                         "🚨 *Automation Error*\n\n"
                         f"📌 Campaign: {campaign_name}\n"
-                        f"❌ Reason: `{reason}`\n"
+                        f"❌ {reason}\n"
                         f"🔍 Details: `{error_msg}`\n\n"
                         "🔄 The system will automatically recover and continue."
                     )
