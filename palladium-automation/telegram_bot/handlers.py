@@ -221,37 +221,43 @@ async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     await update.message.reply_text(response, parse_mode='Markdown')
 
 def parse_proxy(proxy_string):
-    """Parses a proxy string (or multiple separated by comma) into a list of dictionaries."""
+    """Parses a proxy string (or multiple separated by comma or newline) into a list of strings and dicts."""
     try:
-        proxies = []
-        # Split by comma to support multiple proxies
-        proxy_strings = [p.strip() for p in proxy_string.split(",") if p.strip()]
+        proxies_list = []
+        proxies_strings = []
         
-        for p_str in proxy_strings:
+        # Split by comma or newline to support multiple proxies
+        raw_strings = [p.strip() for p in proxy_string.replace("\n", ",").split(",") if p.strip()]
+        
+        for p_str in raw_strings:
             if "@" in p_str:
                 creds, host = p_str.split("@")
                 username, password = creds.split(":")
                 ip, port = host.split(":")
+                proxy_url = f"http://{username}:{password}@{ip}:{port}"
             else:
                 username = password = None
                 ip, port = p_str.split(":")
+                proxy_url = f"http://{ip}:{port}"
                 
-            proxies.append({
+            proxies_list.append({
                 "server": f"http://{ip}:{port}",
                 "username": username,
                 "password": password
             })
+            proxies_strings.append(proxy_url)
             
-        if not proxies:
-            return None
+        if not proxies_list:
+            return None, None
             
-        return {
+        old_format = {
             "enabled": True,
-            "list": proxies,
+            "list": proxies_list,
             "current_index": 0
         }
+        return old_format, proxies_strings
     except Exception:
-        return None
+        return None, None
 
 async def proxy_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /proxy command to start proxy configuration."""
@@ -501,12 +507,17 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         return
 
     elif state == state_manager.WAITING_PROXY_INPUT:
-        proxy_data = parse_proxy(text)
-        if not proxy_data:
+        old_proxy_data, proxies_strings = parse_proxy(text)
+        if not old_proxy_data:
             await update.message.reply_text("❌ Invalid proxy format. Please use `ip:port` or `username:password@ip:port`", parse_mode='Markdown')
             return
             
-        state_manager.update_user(user_id, {"proxy": proxy_data, "state": state_manager.COMPLETED})
+        state_manager.update_user(user_id, {
+            "proxy": old_proxy_data, 
+            "proxies": proxies_strings,
+            "current_proxy_index": 0,
+            "state": state_manager.COMPLETED
+        })
         await update.message.reply_text("✅ Proxy configured successfully!\nUse /proxy_status to verify.")
         return
 

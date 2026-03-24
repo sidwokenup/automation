@@ -3,8 +3,56 @@ import threading
 import time
 import os
 import random
+import requests
 from automation.browser import launch_browser, login, navigate_to_campaigns, open_campaign, update_target_link, ensure_logged_in, ensure_campaign_page
 from telegram_bot.state_manager import get_current_index, update_current_index
+
+def validate_proxy(proxy_url): 
+    try: 
+        proxies = { 
+            "http": proxy_url, 
+            "https": proxy_url 
+        } 
+        res = requests.get("https://api.ipify.org", proxies=proxies, timeout=10) 
+        if res.status_code == 200: 
+            return True, res.text 
+        return False, f"HTTP {res.status_code}"
+    except Exception as e: 
+        return False, str(e) 
+
+def get_next_proxy(user_id, user_data): 
+    proxies = user_data.get("proxies", []) 
+    if not proxies: 
+        # Fallback to legacy single proxy if exists
+        legacy_proxy = user_data.get("proxy")
+        if legacy_proxy and isinstance(legacy_proxy, dict) and legacy_proxy.get("list"):
+            # It's the old dict format
+            idx = legacy_proxy.get("current_index", 0)
+            if idx < len(legacy_proxy["list"]):
+                p = legacy_proxy["list"][idx]
+                if p.get("username"):
+                    return f"{p['server'].replace('http://', 'http://' + p['username'] + ':' + p['password'] + '@')}"
+                return p["server"]
+        return None 
+
+    index = user_data.get("current_proxy_index", 0) 
+    if index >= len(proxies):
+        index = 0
+    proxy = proxies[index] 
+
+    user_data["current_proxy_index"] = (index + 1) % len(proxies) 
+    
+    from telegram_bot.state_manager import update_user
+    
+    # Sync with legacy proxy dict so browser.py uses the same proxy
+    update_data = {"current_proxy_index": user_data["current_proxy_index"]}
+    if "proxy" in user_data and isinstance(user_data["proxy"], dict):
+        user_data["proxy"]["current_index"] = index # set to current index so browser.py uses it! (browser.py will rotate it afterwards)
+        update_data["proxy"] = user_data["proxy"]
+        
+    update_user(user_id, update_data)
+
+    return proxy
 
 # asyncio removed
 
@@ -269,24 +317,77 @@ def automation_loop(user_id, config, logger):
         # Initialize Playwright objects locally for thread safety (One browser per thread)
         from automation.browser import launch_browser, login, navigate_to_campaigns, open_campaign, update_target_link, ensure_campaign_page, check_campaign_exists, retry_action
         
-        playwright, browser, page = launch_browser(user_id=user_id)
-        context = page.context
+        # PROXY VALIDATION & ROTATION SYSTEM
+        from telegram_bot.state_manager import get_user
+        user_data = get_user(user_id)
         
-        # Initial Login
-        add_log(user_id, "Logging in...")
+        proxies_count = len(user_data.get("proxies", []))
+        max_attempts = proxies_count if proxies_count > 0 else 1
         
-        # Add Login Cooldown Check
-        now = time.time()
-        last_attempt = config.get("last_login_attempt", 0)
-        
-        if now - last_attempt < 60:
-            raise Exception("Too many login attempts. Please wait 60 seconds.")
+        for attempt in range(max_attempts):
+            proxy = get_next_proxy(user_id, user_data)
             
-        from telegram_bot.state_manager import update_user
-        update_user(user_id, {"last_login_attempt": now})
-        
-        login(page, config["username"], config["password"])
-        add_log(user_id, "Login successful")
+            app_instance = user_bots.get(str(user_id))
+            if proxy:
+                is_valid, info = validate_proxy(proxy)
+                
+                if is_valid:
+                    if app_instance:
+                        send_telegram_message(app_instance, user_id, f"✅ Proxy connected successfully\n🌐 IP: {info}\n\n🚀 Starting automation...")
+                else:
+                    if app_instance:
+                        send_telegram_message(app_instance, user_id, f"❌ Proxy failed\nReason: {info}\n\n🔄 Trying next proxy...")
+                    continue # Try next proxy
+            
+            try:
+                playwright, browser, page = launch_browser(user_id=user_id)
+                context = page.context
+                
+                # Initial Login
+                add_log(user_id, "Logging in...")
+                
+                # Add Login Cooldown Check
+                now = time.time()
+                last_attempt = config.get("last_login_attempt", 0)
+                
+                if now - last_attempt < 60:
+                    raise Exception("Too many login attempts. Please wait 60 seconds.")
+                    
+                from telegram_bot.state_manager import update_user
+                update_user(user_id, {"last_login_attempt": now})
+                
+                login(page, config["username"], config["password"])
+                add_log(user_id, "Login successful")
+                
+                break # Browser launched and logged in successfully
+            except Exception as e:
+                logger.error(f"Browser launch/login failed on attempt {attempt}: {e}")
+                
+                if "login failed" in str(e).lower() or "invalid credentials" in str(e).lower():
+                    if app_instance:
+                        send_telegram_message(app_instance, user_id, "⚠️ Login failed. Rotating proxy...")
+                        if proxy:
+                            # Actually get_next_proxy already rotated index, but let's notify
+                            send_telegram_message(app_instance, user_id, f"🔄 Switched to new proxy: {proxy}")
+                
+                if attempt == max_attempts - 1:
+                    raise e # Re-raise if all attempts failed so outer block can screenshot
+                
+                # Cleanup before retry
+                if page:
+                    try: page.close()
+                    except: pass
+                if context:
+                    try: context.close()
+                    except: pass
+                if browser:
+                    try: browser.close()
+                    except: pass
+                    
+                continue
+                
+        if not page:
+            raise Exception("Failed to launch browser with valid proxy after all attempts.")
     except Exception as e:
         error_msg = str(e)
         logger.error(f"[User {user_id}] Initial setup failed: {e}")
