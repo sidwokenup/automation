@@ -288,6 +288,21 @@ async def proxy_status_command(update: Update, context: ContextTypes.DEFAULT_TYP
         
     await update.message.reply_text(msg)
 
+async def delete_proxy_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the /delete_proxy command."""
+    user_id = update.effective_user.id
+    state_manager.update_user(user_id, {"proxy": None, "proxies": [], "current_proxy_index": 0})
+    await update.message.reply_text("✅ Proxy deleted successfully.")
+
+async def delete_setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the /delete_setup command."""
+    user_id = update.effective_user.id
+    users_data = state_manager.load_users()
+    if str(user_id) in users_data:
+        del users_data[str(user_id)]
+        state_manager.save_users(users_data)
+    await update.message.reply_text("🗑 Setup deleted. Use /setup to reconfigure.")
+
 async def setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /setup command to start the configuration flow."""
     user = update.effective_user
@@ -426,6 +441,27 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # --- 2. INTENT DETECTION (Pre-AI) ---
     if not state or state in [state_manager.READY_TO_RUN, state_manager.COMPLETED, state_manager.IDLE]:
+        from telegram_bot.intelligence.intent_handler import detect_intent
+        intent = detect_intent(text)
+
+        if intent == "DELETE_PROXY":
+            state_manager.update_user(user_id, {"proxy": None, "proxies": [], "current_proxy_index": 0})
+            await update.message.reply_text("✅ Proxy deleted successfully.")
+            return
+
+        if intent == "DELETE_SETUP":
+            # Clear user data except maybe basic info, essentially defaulting them
+            users_data = state_manager.load_users()
+            if str(user_id) in users_data:
+                del users_data[str(user_id)]
+                state_manager.save_users(users_data)
+            await update.message.reply_text("🗑 Setup deleted. Use /setup to reconfigure.")
+            return
+
+        if intent == "GREETING":
+            await update.message.reply_text("👋 Hey! I'm your automation bot. Use /run to start.")
+            return
+
         if any(keyword in lower_text for keyword in ["start", "run now", "begin automation"]):
             if is_user_fully_configured(user_data):
                 await update.message.reply_text("Triggering automation...")
@@ -525,14 +561,19 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # Show typing indicator while LLM processes
     await context.bot.send_chat_action(chat_id=user_id, action='typing')
     
+    response = None
     try:
         from telegram_bot.agent import process_user_message
         
         # Pass the message to the AI Agent
         response = await process_user_message(user_id, text, application_instance=context.application)
         
-        await update.message.reply_text(response, parse_mode='Markdown')
+        if response:
+            await update.message.reply_text(response, parse_mode='Markdown')
         
     except Exception as e:
         logger.error(f"Error in AI handler: {e}")
-        await update.message.reply_text("❌ An error occurred while processing your message.")
+        
+    # Fallback as requested
+    if not response:
+        await update.message.reply_text("🤖 I didn't understand. Try /help.")

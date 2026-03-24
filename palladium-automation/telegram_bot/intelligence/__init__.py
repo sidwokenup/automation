@@ -1,10 +1,12 @@
 from .error_classifier import classify_error, ErrorType
 from .decision_engine import decide_action, ActionType, get_user_friendly_message
+from .intent_handler import detect_intent
 
 __all__ = [
     'classify_error',
     'ErrorType',
     'decide_action',
     'ActionType',
-    'get_user_friendly_message'
+    'get_user_friendly_message',
+    'detect_intent'
 ]
