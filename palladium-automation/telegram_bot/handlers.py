@@ -319,8 +319,16 @@ async def run_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Automation already running")
         return
         
-    # Prevent Rapid /run Abuse
-    if time.time() - user_data.get("last_run_cmd_time", 0) < 30:
+    # Prevent Rapid /run Abuse and Global Cooldown Check
+    last_run = user_data.get("last_run_cmd_time", 0)
+    cooldown_until = user_data.get("global_cooldown_until", 0)
+    
+    if time.time() < cooldown_until:
+        remaining = int((cooldown_until - time.time()) / 60) + 1
+        await update.message.reply_text(f"⛔ Too many attempts detected. Please wait ~{remaining} minutes before retrying.")
+        return
+        
+    if time.time() - last_run < 30:
         await update.message.reply_text("⚠️ Please wait before restarting automation")
         return
         

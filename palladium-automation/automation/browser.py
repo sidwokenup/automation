@@ -6,6 +6,16 @@ import os
 
 logger = logging.getLogger('palladium_automation')
 
+USER_AGENTS = [
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Macintosh; Intel Mac OS X 10_15_7) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36",
+    "Mozilla/5.0 (Windows NT 10.0; Win64; x64; rv:109.0) Gecko/20100101 Firefox/121.0",
+    "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/120.0.0.0 Safari/537.36"
+]
+
+def get_random_user_agent():
+    return random.choice(USER_AGENTS)
+
 def launch_browser(user_id=None):
     """
     Launches the browser with session persistence and returns playwright, browser (or context), and page objects.
@@ -25,6 +35,10 @@ def launch_browser(user_id=None):
                 proxy_config["username"] = user_data["proxy"]["username"]
                 proxy_config["password"] = user_data["proxy"]["password"]
 
+    viewport = {"width": random.randint(1280, 1920), "height": random.randint(720, 1080)}
+    user_agent = get_random_user_agent()
+    timezone_id = random.choice(["America/New_York", "Europe/London", "Asia/Tokyo", "Europe/Paris"])
+
     if user_id:
         # Session persistence
         user_data_dir = os.path.join(os.getcwd(), "sessions", str(user_id))
@@ -34,11 +48,14 @@ def launch_browser(user_id=None):
             "user_data_dir": user_data_dir,
             "headless": True,
             "executable_path": "/usr/bin/chromium-browser",
-            "user_agent": "Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36",
+            "user_agent": user_agent,
+            "viewport": viewport,
+            "timezone_id": timezone_id,
             "args": [
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
-                "--disable-gpu"
+                "--disable-gpu",
+                "--disable-blink-features=AutomationControlled"
             ]
         }
         if proxy_config:
@@ -50,11 +67,95 @@ def launch_browser(user_id=None):
             Object.defineProperty(navigator, 'webdriver', {
                 get: () => undefined
             });
+            window.navigator.chrome = {
+                runtime: {}
+            };
         """)
         
         # Persistent context already has a default page
         pages = context.pages
         page = pages[0] if pages else context.new_page()
+        # Check if proxy is working before proceeding
+        if proxy_config:
+            try:
+                logger.info("Validating proxy connection...")
+                page.goto("https://api.ipify.org", timeout=15000)
+                proxy_ip = page.inner_text("body").strip()
+                logger.info(f"Proxy validated successfully. IP: {proxy_ip}")
+            except Exception as e:
+                logger.error(f"Proxy validation failed: {e}. Falling back to direct connection.")
+                # We can't change the context proxy after launch in Playwright sync api easily,
+                # but we can raise an error so the runner knows it failed or just continue and risk it.
+                # Since the prompt says "fallback to direct connection", we would need to relaunch without proxy.
+                context.close()
+                if not user_id: browser.close()
+                playwright.stop()
+                
+                # Relaunch without proxy
+                logger.info("Relaunching browser without proxy...")
+                playwright = sync_playwright().start()
+                launch_kwargs.pop("proxy", None)
+                if user_id:
+                    context = playwright.chromium.launch_persistent_context(**launch_kwargs)
+                    context.add_init_script("""
+                        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                        window.navigator.chrome = { runtime: {} };
+                    """)
+                    pages = context.pages
+                    page = pages[0] if pages else context.new_page()
+                    return playwright, context, page
+                else:
+                    browser = playwright.chromium.launch(
+                        headless=True,
+                        executable_path="/usr/bin/chromium-browser",
+                        args=[
+                            "--no-sandbox",
+                            "--disable-dev-shm-usage",
+                            "--disable-gpu",
+                            "--disable-blink-features=AutomationControlled"
+                        ]
+                    )
+                    context = browser.new_context(user_agent=user_agent, viewport=viewport, timezone_id=timezone_id)
+                    context.add_init_script("""
+                        Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                        window.navigator.chrome = { runtime: {} };
+                    """)
+                    page = context.new_page()
+                    # Check if proxy is working before proceeding
+        if proxy_config:
+            try:
+                logger.info("Validating proxy connection...")
+                page.goto("https://api.ipify.org", timeout=15000)
+                proxy_ip = page.inner_text("body").strip()
+                logger.info(f"Proxy validated successfully. IP: {proxy_ip}")
+            except Exception as e:
+                logger.error(f"Proxy validation failed: {e}. Falling back to direct connection.")
+                context.close()
+                browser.close()
+                playwright.stop()
+                
+                logger.info("Relaunching browser without proxy...")
+                playwright = sync_playwright().start()
+                browser = playwright.chromium.launch(
+                    headless=True,
+                    executable_path="/usr/bin/chromium-browser",
+                    args=[
+                        "--no-sandbox",
+                        "--disable-dev-shm-usage",
+                        "--disable-gpu",
+                        "--disable-blink-features=AutomationControlled"
+                    ]
+                )
+                context = browser.new_context(user_agent=user_agent, viewport=viewport, timezone_id=timezone_id)
+                context.add_init_script("""
+                    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
+                    window.navigator.chrome = { runtime: {} };
+                """)
+                page = context.new_page()
+                return playwright, browser, page
+
+        return playwright, browser, page
+
         return playwright, context, page
     else:
         browser = playwright.chromium.launch(
@@ -63,16 +164,22 @@ def launch_browser(user_id=None):
             args=[
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
-                "--disable-gpu"
+                "--disable-gpu",
+                "--disable-blink-features=AutomationControlled"
             ]
         )
         context = browser.new_context(
-            user_agent="Mozilla/5.0 (Windows NT 10.0; Win64; x64) AppleWebKit/537.36 Chrome/120 Safari/537.36"
+            user_agent=user_agent,
+            viewport=viewport,
+            timezone_id=timezone_id
         )
         context.add_init_script("""
             Object.defineProperty(navigator, 'webdriver', {
                 get: () => undefined
             });
+            window.navigator.chrome = {
+                runtime: {}
+            };
         """)
         page = context.new_page()
         return playwright, browser, page
@@ -162,24 +269,35 @@ def login(page, username, password):
                 raise Exception(f"Login page not fully loaded: {e}")
         
             # Add a human-like delay before typing
-            time.sleep(random.uniform(1.5, 3.5))
+            time.sleep(random.uniform(2.0, 5.0))
             
-            # Fill credentials with delays
+            # Simulate human mouse movement
+            page.mouse.move(random.randint(100, 500), random.randint(100, 500))
+            
+            # Fill credentials with human typing delays
             logger.info("Filling credentials...")
-            page.fill('input[type="text"]', username)
+            page.click('input[type="text"]')
+            page.type('input[type="text"]', username, delay=random.randint(50, 150))
             
             time.sleep(random.uniform(1.0, 2.5))
-            page.fill('input[type="password"]', password)
+            page.click('input[type="password"]')
+            page.type('input[type="password"]', password, delay=random.randint(50, 150))
             
-            # Human delay
+            # Human delay before clicking
             time.sleep(random.uniform(1.5, 3.5))
+            
+            # Simulate mouse move to button
+            box = page.locator('button[type="submit"]').bounding_box()
+            if box:
+                page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+                time.sleep(random.uniform(0.5, 1.0))
             
             # Click login
             logger.info("Clicking login button...")
             page.click('button[type="submit"]')
             
             # Human delay after login
-            time.sleep(random.uniform(2.0, 5.0))
+            time.sleep(random.uniform(5.0, 10.0))
             
             # Smart wait
             logger.info("Waiting for login resolution...")
@@ -227,9 +345,13 @@ def login(page, username, password):
                  
             if attempt == 2:
                 raise e
-            # Backoff before retry
-            backoff_time = 5 * (attempt + 1)
-            logger.info(f"Waiting {backoff_time}s before retrying login...")
+            # Smart retry backoff
+            if attempt == 0:
+                backoff_time = random.uniform(30, 60) # 30-60s for 2nd attempt
+            else:
+                backoff_time = random.uniform(120, 300) # 2-5m for 3rd attempt
+                
+            logger.info(f"Waiting {backoff_time:.1f}s before retrying login...")
             time.sleep(backoff_time)
             
     raise Exception("Login failed after all retries.")

@@ -316,17 +316,21 @@ def automation_loop(user_id, config, logger):
             error_message = f"""❌ *Login Failed*
             
 Possible reasons:
-• IP temporarily blocked
-• Too many login attempts
+• Invalid credentials
+• IP blocked or rate limited
 • Bot detection triggered
+• Temporary server issue
 
 💡 *Recommendation:*
-Try using a proxy to bypass IP restrictions.
+1. Wait 5–10 minutes before retrying
+2. Try a different network or proxy (/proxy)
+3. Use a residential proxy for best results
 
-Use:
-/proxy to configure proxy
-
-⏳ Wait 1–2 minutes before retrying"""
+_Reason: {error_reason}_"""
+            
+            # Apply global cooldown
+            from telegram_bot.state_manager import update_user
+            update_user(user_id, {"global_cooldown_until": time.time() + random.uniform(120, 300)})
         else:
             error_message = f"""❌ *Automation Error*
 
