@@ -62,74 +62,124 @@ async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     )
     await update.message.reply_text(help_message)
 
+def is_user_fully_configured(user_data: dict) -> bool:
+    """Check if the user has provided all necessary setup data."""
+    if not user_data:
+        return False
+    required_keys = ["username", "password", "campaign", "links", "interval"]
+    return all(bool(user_data.get(key)) for key in required_keys)
+
+def calculate_progress(user_data):
+    total = user_data.get("total_links", 0)
+    if total == 0:
+        links = user_data.get("links", [])
+        total = len(links) if isinstance(links, list) else 0
+    current = user_data.get("current_index", 0)
+    if total == 0:
+        return 0
+    return int((current / total) * 100)
+
+def get_current_link(user_data):
+    links = user_data.get("links", [])
+    index = user_data.get("current_index", 0)
+    if isinstance(links, list) and 0 <= index < len(links):
+        return links[index]
+    return "N/A"
+
+def calculate_eta(user_data):
+    total = user_data.get("total_links", 0)
+    if total == 0:
+        links = user_data.get("links", [])
+        total = len(links) if isinstance(links, list) else 0
+    current = user_data.get("current_index", 0)
+    try:
+        interval = int(user_data.get("interval", 1))
+    except ValueError:
+        interval = 1
+    remaining = total - current
+    if remaining < 0:
+        remaining = 0
+    return remaining * interval * 60
+
+def format_eta(seconds):
+    minutes = seconds // 60
+    secs = seconds % 60
+    return f"{minutes}m {secs}s"
+
 async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /status command."""
     user = update.effective_user
     user_id = user.id
     
-    # 1. Check if user has setup
     user_data = state_manager.get_user(user_id)
-    state = user_data.get("state")
     running = state_manager.is_running(user_id)
     
-    logger.info(f"[User {user_id}] ({user.username}) issued /status command. State={state}, Running={running}")
+    logger.info(f"[User {user_id}] ({user.username}) issued /status command. Running={running}")
     
     if not user_data:
         await update.message.reply_text("❌ Please run /setup first")
         return
         
-    if state != state_manager.COMPLETED:
+    if not running and not is_user_fully_configured(user_data):
         await update.message.reply_text("⚠️ Setup incomplete. Continue setup.")
         return
+        
+    progress = calculate_progress(user_data)
+    current_link = get_current_link(user_data)
+    eta = format_eta(calculate_eta(user_data))
+    
+    total_links = user_data.get("total_links", 0)
+    if total_links == 0:
+        links = user_data.get("links", [])
+        total_links = len(links) if isinstance(links, list) else 0
+        
+    current_index = user_data.get("current_index", 0)
+    interval = user_data.get("interval", 10)
+    campaign = user_data.get("campaign", "Unknown")
+    
+    status_emoji = "🟢 Status: RUNNING" if running else "🟡 Status: STOPPED"
+    
+    status_text = f"""🚀 *Automation Dashboard*
 
-    if not running:
-        await update.message.reply_text("🛑 Automation Status: STOPPED\n\nUse /run to start automation.")
+📊 Progress: {progress}%
+🔗 Current Link:
+`{current_link}`
+
+📦 Total Links: {total_links}
+🔁 Current Index: {current_index}
+
+⏱️ Interval: {interval} min
+⌛ ETA: {eta}
+
+{status_emoji}
+🎯 Campaign: {campaign}"""
+
+    if running:
+        await update.message.reply_text(status_text, parse_mode='Markdown')
+    else:
+        await update.message.reply_text("✅ Setup complete. Ready to run.\n\n" + status_text, parse_mode='Markdown')
+
+async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    """Handles the /progress command for a quick lightweight status check."""
+    user = update.effective_user
+    user_id = user.id
+    user_data = state_manager.get_user(user_id)
+    running = state_manager.is_running(user_id)
+    
+    if not user_data or (not running and not is_user_fully_configured(user_data)):
+        await update.message.reply_text("⚠️ Setup incomplete or not running.")
         return
         
-    # 2. Get runtime status
-    status = get_status(user_id)
+    progress = calculate_progress(user_data)
+    current_index = user_data.get("current_index", 0)
+    total_links = user_data.get("total_links", 0)
+    if total_links == 0:
+         links = user_data.get("links", [])
+         total_links = len(links) if isinstance(links, list) else 0
+         
+    status_emoji = "🟢 RUNNING" if running else "🟡 STOPPED"
     
-    # 3. Check if never started
-    if not status:
-        status = {}
-        
-    campaign = user_data.get("campaign", "Unknown")
-    total_links = status.get("total_links", 0)
-    current_link = status.get("current_link", "None")
-    last_updated = status.get("last_updated")
-    interval = user_data.get("interval", 10)
-    
-    # 4. Construct response
-    if running:
-        # Format last updated time
-        time_msg = "Never"
-        if last_updated:
-            elapsed = int(time.time() - last_updated)
-            if elapsed < 60:
-                time_msg = "just now"
-            elif elapsed < 3600:
-                time_msg = f"{elapsed // 60} minutes ago"
-            else:
-                time_msg = f"{elapsed // 3600} hours ago"
-        
-        msg = (
-            "🚀 Automation Status: RUNNING\n\n"
-            f"📌 Campaign: {campaign}\n"
-            f"🔗 Current Link: `{current_link}`\n\n"
-            f"📊 Total Links: {total_links}\n"
-            f"⏱ Last Updated: {time_msg}\n\n"
-            f"🔄 Next Update: in ~{interval} minutes\n"
-            f"⏳ Current Interval: {interval} minutes"
-        )
-    else:
-        msg = (
-            "🛑 Automation Status: STOPPED\n\n"
-            f"📌 Campaign: {campaign}\n"
-            f"📊 Total Links: {total_links}\n"
-            f"⏳ Current Interval: {interval} minutes\n\n"
-            "Use /run to start again"
-        )
-        
+    msg = f"📊 *Progress*: {progress}% ({current_index}/{total_links}) | {status_emoji}"
     await update.message.reply_text(msg, parse_mode='Markdown')
 
 async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -148,11 +198,11 @@ async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Please run /setup first")
         return
         
-    if state != state_manager.COMPLETED:
-        await update.message.reply_text("⚠️ Setup incomplete. Continue setup.")
-        return
-
     if not running:
+        if not is_user_fully_configured(user_data):
+            await update.message.reply_text("⚠️ Setup incomplete. Continue setup.")
+            return
+            
         await update.message.reply_text("📭 Automation is not running.\nRun /run to start automation.")
         return
 
@@ -208,8 +258,8 @@ async def run_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Please run /setup first")
         return
     
-    # Check if setup is completed or ready to run
-    if state not in [state_manager.COMPLETED, state_manager.READY_TO_RUN]:
+    # Check if setup is completed based on data
+    if not is_user_fully_configured(user_data):
         await update.message.reply_text("❌ Please complete setup first using /setup")
         return
 
@@ -318,7 +368,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # --- 2. INTENT DETECTION (Pre-AI) ---
     lower_text = text.lower()
     if any(keyword in lower_text for keyword in ["start", "run now", "begin automation"]):
-        if state in [state_manager.COMPLETED, state_manager.READY_TO_RUN]:
+        if is_user_fully_configured(user_data):
             await update.message.reply_text("Triggering automation...")
             await run_command(update, context)
             return

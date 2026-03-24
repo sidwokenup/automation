@@ -493,7 +493,15 @@ _Screenshot attached for debugging._"""
                 
                 # Update persistent index ONLY after successful update
                 link_index = (link_index + 1) % len(links)
-                update_current_index(user_id, link_index)
+                
+                from telegram_bot.state_manager import update_user
+                update_user(user_id, {
+                    "current_index": link_index,
+                    "total_links": len(links),
+                    "last_run_time": time.time(),
+                    "cycle_start_time": start_time
+                })
+                
                 add_log(user_id, f"Next index will be: {link_index}")
                 
                 # Mark error as resolved if it was active
@@ -502,11 +510,7 @@ _Screenshot attached for debugging._"""
                      if app_instance:
                          send_telegram_message(app_instance, user_id, "✅ *Automation Resumed*\n\nSystem has recovered and automation is running normally.")
     
-                # Save user data to disk explicitly after status/index change
-                from telegram_bot.state_manager import get_user, save_users, load_users
-                users = load_users()
-                users[str(user_id)] = get_user(user_id)
-                save_users(users)
+                # Note: user data is already saved to disk by update_user above
                 
                 # Periodic Page Reset for Stability (CRITICAL)
                 cycle_count += 1
