@@ -6,24 +6,45 @@ import os
 
 logger = logging.getLogger('palladium_automation')
 
-def launch_browser():
+def launch_browser(user_id=None):
     """
-    Launches the browser and returns playwright, browser, and page objects.
+    Launches the browser with session persistence and returns playwright, browser (or context), and page objects.
     """
     logger.info("Starting Playwright...")
     playwright = sync_playwright().start()
-    browser = playwright.chromium.launch(
-        headless=True,
-        executable_path="/usr/bin/chromium-browser",
-        args=[
-            "--no-sandbox",
-            "--disable-dev-shm-usage",
-            "--disable-gpu"
-        ]
-    )
-    context = browser.new_context()
-    page = context.new_page()
-    return playwright, browser, page
+    
+    if user_id:
+        # Session persistence
+        user_data_dir = os.path.join(os.getcwd(), "sessions", str(user_id))
+        os.makedirs(user_data_dir, exist_ok=True)
+        
+        context = playwright.chromium.launch_persistent_context(
+            user_data_dir=user_data_dir,
+            headless=False,
+            executable_path="/usr/bin/chromium-browser",
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu"
+            ]
+        )
+        # Persistent context already has a default page
+        pages = context.pages
+        page = pages[0] if pages else context.new_page()
+        return playwright, context, page
+    else:
+        browser = playwright.chromium.launch(
+            headless=False,
+            executable_path="/usr/bin/chromium-browser",
+            args=[
+                "--no-sandbox",
+                "--disable-dev-shm-usage",
+                "--disable-gpu"
+            ]
+        )
+        context = browser.new_context()
+        page = context.new_page()
+        return playwright, browser, page
 
 def retry_action(action, retries=3):
     """Retries a given action function multiple times."""
@@ -69,60 +90,85 @@ def is_login_successful(page):
 
 def login(page, username, password):
     """
-    Logs into the website using SPA-aware multi-strategy detection.
+    Logs into the website using SPA-aware multi-strategy detection, human delays, and retries.
     """
-    logger.info("Navigating to login page...")
-    page.goto("https://next.palladium.expert")
-    
-    # Wait for login fields
-    logger.info("Waiting for login fields...")
-    try:
-        page.wait_for_selector('input[type="text"]', state='visible', timeout=10000)
-    except Exception as e:
-        logger.error(f"Error waiting for selectors: {e}")
-        raise Exception(f"Login page not fully loaded: {e}")
+    # Check if already logged in first to save time with persistent sessions
+    if is_login_successful(page):
+        logger.info("Session already active, skipping login.")
+        return True
 
-    # Add a small human-like delay before typing
-    time.sleep(random.uniform(0.8, 1.5))
-    
-    # Fill credentials
-    logger.info("Filling credentials...")
-    page.fill('input[type="text"]', username)
-    page.fill('input[type="password"]', password)
-    
-    # Human delay
-    time.sleep(random.uniform(1.0, 2.0))
-    
-    # Click login
-    logger.info("Clicking login button...")
-    page.click('button[type="submit"]')
-    
-    # Smart wait
-    logger.info("Waiting for login resolution...")
-    try:
-        page.wait_for_load_state('networkidle', timeout=15000)
-    except:
-        logger.warning("Network idle timeout during login. Proceeding to validation.")
-        
-    time.sleep(3) # Let React process the state change
-    
-    # Retry-Based Login Validation
     for attempt in range(3):
-        logger.info(f"Checking login success (Attempt {attempt+1})...")
-        
-        # Check if form is explicitly still there indicating failure
-        if page.locator("input[name='email']").is_visible() or page.locator("input[type='password']").is_visible():
-            # If form is still visible AND there's an error message
-            if page.locator("text=Invalid").is_visible(timeout=1000) or page.locator("text=Error").is_visible(timeout=1000):
-                raise Exception("Login failed: Invalid credentials or server error.")
-        
-        if is_login_successful(page):
-            logger.info("Login successful")
-            return True
+        try:
+            logger.info(f"Navigating to login page (Attempt {attempt+1})...")
+            page.goto("https://next.palladium.expert")
             
-        time.sleep(2)
+            # Wait for login fields
+            logger.info("Waiting for login fields...")
+            try:
+                page.wait_for_selector('input[type="text"]', state='visible', timeout=10000)
+            except Exception as e:
+                logger.error(f"Error waiting for selectors: {e}")
+                raise Exception(f"Login page not fully loaded: {e}")
         
-    raise Exception("Login failed after retries: Could not verify dashboard load or session state.")
+            # Add a human-like delay before typing
+            time.sleep(random.uniform(1.5, 3.5))
+            
+            # Fill credentials with delays
+            logger.info("Filling credentials...")
+            page.fill('input[type="text"]', username)
+            
+            time.sleep(random.uniform(1.0, 2.5))
+            page.fill('input[type="password"]', password)
+            
+            # Human delay
+            time.sleep(random.uniform(1.0, 2.0))
+            
+            # Click login
+            logger.info("Clicking login button...")
+            page.click('button[type="submit"]')
+            
+            # Smart wait
+            logger.info("Waiting for login resolution...")
+            try:
+                page.wait_for_load_state('networkidle', timeout=15000)
+            except:
+                logger.warning("Network idle timeout during login. Proceeding to validation.")
+                
+            time.sleep(3) # Let React process the state change
+            
+            # Retry-Based Login Validation
+            login_success = False
+            for val_attempt in range(3):
+                logger.info(f"Checking login success (Validation {val_attempt+1})...")
+                
+                # Check if form is explicitly still there indicating failure
+                if page.locator("input[name='email']").is_visible() or page.locator("input[type='password']").is_visible():
+                    # If form is still visible AND there's an error message
+                    if page.locator("text=Login Error").is_visible(timeout=1000) or page.locator("text=Invalid").is_visible(timeout=1000) or page.locator("text=Error").is_visible(timeout=1000):
+                        raise Exception("Login failed due to server/validation error")
+                
+                if is_login_successful(page):
+                    logger.info("Login successful")
+                    login_success = True
+                    break
+                    
+                time.sleep(2)
+                
+            if login_success:
+                return True
+            else:
+                raise Exception("Login validation failed: Could not verify dashboard load or session state.")
+                
+        except Exception as e:
+            logger.warning(f"Login attempt {attempt+1} failed: {e}")
+            if attempt == 2:
+                raise e
+            # Backoff before retry
+            backoff_time = 5 * (attempt + 1)
+            logger.info(f"Waiting {backoff_time}s before retrying login...")
+            time.sleep(backoff_time)
+            
+    raise Exception("Login failed after all retries.")
 
 def ensure_logged_in(page, username, password):
     """

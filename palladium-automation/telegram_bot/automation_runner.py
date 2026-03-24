@@ -268,11 +268,22 @@ def automation_loop(user_id, config, logger):
         # Initialize Playwright objects locally for thread safety (One browser per thread)
         from automation.browser import launch_browser, login, navigate_to_campaigns, open_campaign, update_target_link, ensure_campaign_page, check_campaign_exists, retry_action
         
-        playwright, browser, page = launch_browser()
+        playwright, browser, page = launch_browser(user_id=user_id)
         context = page.context
         
         # Initial Login
         add_log(user_id, "Logging in...")
+        
+        # Add Login Cooldown Check
+        now = time.time()
+        last_attempt = config.get("last_login_attempt", 0)
+        
+        if now - last_attempt < 60:
+            raise Exception("Too many login attempts. Please wait 60 seconds.")
+            
+        from telegram_bot.state_manager import update_user
+        update_user(user_id, {"last_login_attempt": now})
+        
         login(page, config["username"], config["password"])
         add_log(user_id, "Login successful")
     except Exception as e:
@@ -292,10 +303,23 @@ def automation_loop(user_id, config, logger):
                 logger.error(f"[User {user_id}] Login screenshot failed: {screenshot_error}")
                 
         # Send alert via notifier
-        error_message = f"""❌ *Automation Error*
+        error_reason = str(e)
+        if "Login failed" in error_reason or "login attempts" in error_reason:
+            error_message = f"""❌ *Login Failed*
+            
+Possible reasons:
+• Too many attempts (rate limit)
+• Bot detection triggered
+• Temporary server block
+
+_Reason: {error_reason}_
+
+⏳ Please wait 1–2 minutes before retrying."""
+        else:
+            error_message = f"""❌ *Automation Error*
 
 *Reason:*
-{str(e)}
+{error_reason}
 
 _Screenshot attached for debugging._"""
         

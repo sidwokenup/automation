@@ -272,6 +272,13 @@ async def run_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     if running:
         await update.message.reply_text("⚠️ Automation already running")
         return
+        
+    # Prevent Rapid /run Abuse
+    if time.time() - user_data.get("last_run_cmd_time", 0) < 30:
+        await update.message.reply_text("⚠️ Please wait before restarting automation")
+        return
+        
+    state_manager.update_user(user_id, {"last_run_cmd_time": time.time()})
 
     # Start automation
     try:
