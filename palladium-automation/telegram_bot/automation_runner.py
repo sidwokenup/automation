@@ -329,6 +329,7 @@ def automation_loop(user_id, config, logger):
             
             app_instance = user_bots.get(str(user_id))
             if proxy:
+                print(f"[DEBUG] Using proxy: {proxy}")
                 is_valid, info = validate_proxy(proxy)
                 
                 if is_valid:
@@ -387,7 +388,10 @@ def automation_loop(user_id, config, logger):
                 continue
                 
         if not page:
-            raise Exception("Failed to launch browser with valid proxy after all attempts.")
+            app_instance = user_bots.get(str(user_id))
+            if app_instance:
+                send_telegram_message(app_instance, user_id, "❌ All proxies failed. Try adding new proxies or retry later.")
+            return
     except Exception as e:
         error_msg = str(e)
         logger.error(f"[User {user_id}] Initial setup failed: {e}")
