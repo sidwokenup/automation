@@ -121,40 +121,7 @@ def launch_browser(user_id=None):
                         window.navigator.chrome = { runtime: {} };
                     """)
                     page = context.new_page()
-                    # Check if proxy is working before proceeding
-        if proxy_config:
-            try:
-                logger.info("Validating proxy connection...")
-                page.goto("https://api.ipify.org", timeout=15000)
-                proxy_ip = page.inner_text("body").strip()
-                logger.info(f"Proxy validated successfully. IP: {proxy_ip}")
-            except Exception as e:
-                logger.error(f"Proxy validation failed: {e}. Falling back to direct connection.")
-                context.close()
-                browser.close()
-                playwright.stop()
-                
-                logger.info("Relaunching browser without proxy...")
-                playwright = sync_playwright().start()
-                browser = playwright.chromium.launch(
-                    headless=True,
-                    executable_path="/usr/bin/chromium-browser",
-                    args=[
-                        "--no-sandbox",
-                        "--disable-dev-shm-usage",
-                        "--disable-gpu",
-                        "--disable-blink-features=AutomationControlled"
-                    ]
-                )
-                context = browser.new_context(user_agent=user_agent, viewport=viewport, timezone_id=timezone_id)
-                context.add_init_script("""
-                    Object.defineProperty(navigator, 'webdriver', { get: () => undefined });
-                    window.navigator.chrome = { runtime: {} };
-                """)
-                page = context.new_page()
-                return playwright, browser, page
-
-        return playwright, browser, page
+                    return playwright, browser, page
 
         return playwright, context, page
     else:
