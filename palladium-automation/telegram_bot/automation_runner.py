@@ -2,6 +2,7 @@ import logging
 import threading
 import time
 import os
+import random
 from automation.browser import launch_browser, login, navigate_to_campaigns, open_campaign, update_target_link, ensure_logged_in, ensure_campaign_page
 from telegram_bot.state_manager import get_current_index, update_current_index
 
@@ -328,9 +329,19 @@ Possible reasons:
 
 _Reason: {error_reason}_"""
             
-            # Apply global cooldown
-            from telegram_bot.state_manager import update_user
-            update_user(user_id, {"global_cooldown_until": time.time() + random.uniform(120, 300)})
+            # Apply global cooldown safely
+            try:
+                cooldown = time.time() + random.uniform(120, 300)
+            except Exception as rand_e:
+                logger.error(f"Error calculating cooldown: {rand_e}")
+                cooldown = time.time() + 180  # fallback to 3 minutes
+                
+            logger.info(f"Applying cooldown for user {user_id}: {cooldown}")
+            try:
+                from telegram_bot.state_manager import update_user
+                update_user(user_id, {"global_cooldown_until": cooldown})
+            except Exception as e:
+                logger.error(f"Failed to update global cooldown state for {user_id}: {e}")
         else:
             error_message = f"""❌ *Automation Error*
 
