@@ -34,6 +34,39 @@ def retry_action(action, retries=3):
             if attempt == retries - 1:
                 raise e
             time.sleep(3)
+def is_login_successful(page):
+    """
+    Checks if login was successful using multi-strategy SPA detection.
+    """
+    # Signal 1: URL change
+    if "dashboard" in page.url.lower() or "campaign" in page.url.lower():
+        return True
+        
+    # Signal 2: Dashboard element exists
+    try:
+        if page.locator("text=Campaign").count() > 0:
+            return True
+    except:
+        pass
+        
+    # Signal 3: Logout/Profile button exists
+    try:
+        if page.locator("text=Logout").count() > 0 or page.locator("text=Profile").count() > 0:
+            return True
+    except:
+        pass
+        
+    # Signal 4: Cookies/session present
+    try:
+        cookies = page.context.cookies()
+        if len(cookies) > 0:
+            # Basic check to see if we got some auth cookies
+            return True
+    except:
+        pass
+        
+    return False
+
 def login(page, username, password):
     """
     Logs into the website using SPA-aware multi-strategy detection.
@@ -49,45 +82,47 @@ def login(page, username, password):
         logger.error(f"Error waiting for selectors: {e}")
         raise Exception(f"Login page not fully loaded: {e}")
 
+    # Add a small human-like delay before typing
+    time.sleep(random.uniform(0.8, 1.5))
+    
     # Fill credentials
     logger.info("Filling credentials...")
     page.fill('input[type="text"]', username)
     page.fill('input[type="password"]', password)
     
+    # Human delay
+    time.sleep(random.uniform(1.0, 2.0))
+    
     # Click login
     logger.info("Clicking login button...")
     page.click('button[type="submit"]')
     
-    # Add a small stability delay to let React process the click and begin API call
-    time.sleep(2)
-    
-    # Multi-strategy validation
+    # Smart wait
     logger.info("Waiting for login resolution...")
     try:
-        # Strategy A: Wait for network to settle
         page.wait_for_load_state('networkidle', timeout=15000)
+    except:
+        logger.warning("Network idle timeout during login. Proceeding to validation.")
         
-        # Strategy B & D: Check if we are still stuck on the login page or form is visible
-        if "login" in page.url.lower():
-            raise Exception("Still on login page after attempt.")
-            
-        if page.locator("input[name='email']").is_visible() or page.locator("input[type='password']").is_visible():
-            raise Exception("Login form still visible.")
-            
-        # Optional Strategy C: Wait for a known dashboard element to confirm
-        # Note: Using a soft timeout here so it doesn't crash if the dashboard takes an extra second
-        try:
-            page.wait_for_selector("text=Campaign", timeout=5000)
-        except:
-            logger.warning("Dashboard 'Campaign' text not immediately visible, but login form is gone. Proceeding.")
-            
-        logger.info("Login successful")
-            
-    except Exception as e:
-        logger.error(f"Login validation failed: {e}")
-        raise Exception(f"Login failed: {str(e)}")
+    time.sleep(3) # Let React process the state change
     
-    return True
+    # Retry-Based Login Validation
+    for attempt in range(3):
+        logger.info(f"Checking login success (Attempt {attempt+1})...")
+        
+        # Check if form is explicitly still there indicating failure
+        if page.locator("input[name='email']").is_visible() or page.locator("input[type='password']").is_visible():
+            # If form is still visible AND there's an error message
+            if page.locator("text=Invalid").is_visible(timeout=1000) or page.locator("text=Error").is_visible(timeout=1000):
+                raise Exception("Login failed: Invalid credentials or server error.")
+        
+        if is_login_successful(page):
+            logger.info("Login successful")
+            return True
+            
+        time.sleep(2)
+        
+    raise Exception("Login failed after retries: Could not verify dashboard load or session state.")
 
 def ensure_logged_in(page, username, password):
     """
