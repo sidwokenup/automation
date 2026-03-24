@@ -299,6 +299,14 @@ def automation_loop(user_id, config, logger):
                 os.makedirs("logs", exist_ok=True)
                 page.screenshot(path=screenshot_path, full_page=True)
                 logger.info(f"[User {user_id}] Login error screenshot saved: {screenshot_path}")
+                
+                # Try to grab current URL for debugging context
+                try:
+                    current_url = page.url
+                    e_str = str(e)
+                    e = Exception(f"{e_str}\n\n*Current URL at failure:* `{current_url}`\n*Time:* `{time.strftime('%Y-%m-%d %H:%M:%S')}`")
+                except: pass
+                
             except Exception as screenshot_error:
                 logger.error(f"[User {user_id}] Login screenshot failed: {screenshot_error}")
                 

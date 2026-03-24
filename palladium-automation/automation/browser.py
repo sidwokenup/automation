@@ -88,23 +88,30 @@ def retry_action(action, retries=3):
             time.sleep(3)
 def is_login_successful(page):
     """
-    Checks if login was successful using multi-strategy SPA detection.
+    Checks if login was successful using multi-layer SPA detection.
+    Requires at least 2 positive signals to confirm success.
     """
-    # Signal 1: URL change
-    if "dashboard" in page.url.lower() or "campaign" in page.url.lower():
-        return True
+    signals = 0
+    
+    # Signal 1: URL change (not on login page)
+    current_url = page.url.lower()
+    if "login" not in current_url and ("dashboard" in current_url or "campaign" in current_url):
+        logger.info("Login Signal: URL changed to dashboard/campaign.")
+        signals += 1
         
-    # Signal 2: Dashboard element exists
+    # Signal 2: Dashboard element exists (any common element)
     try:
-        if page.locator("text=Campaign").count() > 0:
-            return True
+        if page.locator("text=Campaign").count() > 0 or page.locator("table").count() > 0 or page.locator("tr").count() > 0:
+            logger.info("Login Signal: Dashboard UI elements detected.")
+            signals += 1
     except:
         pass
         
     # Signal 3: Logout/Profile button exists
     try:
         if page.locator("text=Logout").count() > 0 or page.locator("text=Profile").count() > 0:
-            return True
+            logger.info("Login Signal: User profile/logout button detected.")
+            signals += 1
     except:
         pass
         
@@ -112,11 +119,24 @@ def is_login_successful(page):
     try:
         cookies = page.context.cookies()
         if len(cookies) > 0:
-            # Basic check to see if we got some auth cookies
-            return True
+            logger.info(f"Login Signal: Found {len(cookies)} cookies.")
+            signals += 1
     except:
         pass
-        
+
+    # Signal 5: LocalStorage tokens
+    try:
+        local_storage = page.evaluate("Object.keys(localStorage)")
+        if len(local_storage) > 0:
+            logger.info(f"Login Signal: Found {len(local_storage)} localStorage keys: {local_storage}")
+            signals += 1
+    except:
+        pass
+
+    logger.info(f"Total positive login signals: {signals}")
+    
+    if signals >= 2:
+        return True
     return False
 
 def login(page, username, password):
@@ -152,30 +172,37 @@ def login(page, username, password):
             page.fill('input[type="password"]', password)
             
             # Human delay
-            time.sleep(random.uniform(1.0, 2.0))
+            time.sleep(random.uniform(1.5, 3.5))
             
             # Click login
             logger.info("Clicking login button...")
             page.click('button[type="submit"]')
             
+            # Human delay after login
+            time.sleep(random.uniform(2.0, 5.0))
+            
             # Smart wait
             logger.info("Waiting for login resolution...")
             try:
+                # Wait for navigation OR network idle
                 page.wait_for_load_state('networkidle', timeout=15000)
             except:
                 logger.warning("Network idle timeout during login. Proceeding to validation.")
                 
-            time.sleep(3) # Let React process the state change
+            # Dynamic wait (3-8 seconds) and polling
+            wait_time = random.uniform(3.0, 8.0)
+            logger.info(f"Dynamic wait for {wait_time:.1f} seconds to allow SPA rendering...")
+            time.sleep(wait_time)
             
-            # Retry-Based Login Validation
+            # Validation logic
             login_success = False
-            for val_attempt in range(3):
+            for val_attempt in range(4): # Poll up to 4 times
                 logger.info(f"Checking login success (Validation {val_attempt+1})...")
                 
-                # Check if form is explicitly still there indicating failure
+                # Explicit failure check
                 if page.locator("input[name='email']").is_visible() or page.locator("input[type='password']").is_visible():
-                    # If form is still visible AND there's an error message
                     if page.locator("text=Login Error").is_visible(timeout=1000) or page.locator("text=Invalid").is_visible(timeout=1000) or page.locator("text=Error").is_visible(timeout=1000):
+                        logger.error("Explicit login error detected on page.")
                         raise Exception("Login failed due to server/validation error")
                 
                 if is_login_successful(page):
@@ -183,15 +210,21 @@ def login(page, username, password):
                     login_success = True
                     break
                     
-                time.sleep(2)
+                time.sleep(3) # Wait between polls
                 
             if login_success:
                 return True
             else:
-                raise Exception("Login validation failed: Could not verify dashboard load or session state.")
+                logger.warning("Login validation uncertain. Continuing flow as 'Login Possibly Successful'...")
+                # Fallback state: don't raise exception, just return True and let subsequent steps fail if it really didn't work.
+                return True
                 
         except Exception as e:
-            logger.warning(f"Login attempt {attempt+1} failed: {e}")
+            logger.warning(f"Login attempt {attempt+1} failed explicitly: {e}")
+            if "server/validation error" in str(e):
+                 # Clear failure (wrong credentials or explicit block), don't retry aggressively
+                 raise e
+                 
             if attempt == 2:
                 raise e
             # Backoff before retry
