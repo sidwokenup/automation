@@ -1,4 +1,5 @@
 from playwright.sync_api import sync_playwright
+from playwright_stealth import stealth_sync
 import logging
 import time
 import random
@@ -46,7 +47,7 @@ def launch_browser(user_id=None):
         
         launch_kwargs = {
             "user_data_dir": user_data_dir,
-            "headless": True,
+            "headless": False,
             "executable_path": "/usr/bin/chromium-browser",
             "user_agent": user_agent,
             "viewport": viewport,
@@ -61,7 +62,10 @@ def launch_browser(user_id=None):
         if proxy_config:
             launch_kwargs["proxy"] = proxy_config
             
+        logger.info("Launching persistent browser context...")
         context = playwright.chromium.launch_persistent_context(**launch_kwargs)
+        browser = context # For consistent return type
+        
         # Stealth mode script to bypass basic webdriver detection
         context.add_init_script("""
             Object.defineProperty(navigator, 'webdriver', {
@@ -73,8 +77,10 @@ def launch_browser(user_id=None):
         """)
         
         # Persistent context already has a default page
+        logger.info("Creating new page...")
         pages = context.pages
         page = pages[0] if pages else context.new_page()
+        stealth_sync(page)
         # Check if proxy is working before proceeding
         if proxy_config:
             try:
@@ -103,10 +109,11 @@ def launch_browser(user_id=None):
                     """)
                     pages = context.pages
                     page = pages[0] if pages else context.new_page()
+                    stealth_sync(page)
                     return playwright, context, page
                 else:
                     browser = playwright.chromium.launch(
-                        headless=True,
+                        headless=False,
                         executable_path="/usr/bin/chromium-browser",
                         args=[
                             "--no-sandbox",
@@ -121,12 +128,13 @@ def launch_browser(user_id=None):
                         window.navigator.chrome = { runtime: {} };
                     """)
                     page = context.new_page()
+                    stealth_sync(page)
                     return playwright, browser, page
 
         return playwright, context, page
     else:
         browser = playwright.chromium.launch(
-            headless=True,
+            headless=False,
             executable_path="/usr/bin/chromium-browser",
             args=[
                 "--no-sandbox",
@@ -149,6 +157,7 @@ def launch_browser(user_id=None):
             };
         """)
         page = context.new_page()
+        stealth_sync(page)
         return playwright, browser, page
 
 def retry_action(action, retries=3):
@@ -213,6 +222,21 @@ def is_login_successful(page):
         return True
     return False
 
+def simulate_mouse_movement(page):
+    """Simulates smooth human-like mouse movement across the screen."""
+    start_x = random.randint(100, 300)
+    start_y = random.randint(100, 300)
+    end_x = random.randint(400, 800)
+    end_y = random.randint(400, 800)
+    
+    # Move in steps for smoothness
+    steps = random.randint(5, 15)
+    for i in range(steps):
+        x = start_x + (end_x - start_x) * (i / steps) + random.randint(-10, 10)
+        y = start_y + (end_y - start_y) * (i / steps) + random.randint(-10, 10)
+        page.mouse.move(x, y)
+        time.sleep(random.uniform(0.01, 0.05))
+
 def login(page, username, password):
     """
     Logs into the website using SPA-aware multi-strategy detection, human delays, and retries.
@@ -222,10 +246,18 @@ def login(page, username, password):
         logger.info("Session already active, skipping login.")
         return True
 
-    for attempt in range(3):
+    # Limit to 2 retries (Attempt 1 + 1 retry) for smarter retry logic
+    for attempt in range(2):
         try:
             logger.info(f"Navigating to login page (Attempt {attempt+1})...")
             page.goto("https://next.palladium.expert")
+            
+            # Pre-login human behavior
+            time.sleep(random.uniform(2.0, 4.0))
+            simulate_mouse_movement(page)
+            page.mouse.wheel(0, random.randint(100, 300))
+            time.sleep(random.uniform(1.0, 2.0))
+            page.mouse.wheel(0, random.randint(-200, -50))
             
             # Wait for login fields
             logger.info("Waiting for login fields...")
@@ -238,25 +270,43 @@ def login(page, username, password):
             # Add a human-like delay before typing
             time.sleep(random.uniform(2.0, 5.0))
             
-            # Simulate human mouse movement
-            page.mouse.move(random.randint(100, 500), random.randint(100, 500))
+            # Simulate human mouse movement to username field
+            simulate_mouse_movement(page)
             
-            # Fill credentials with human typing delays
+            # Fill credentials with human typing delays (character by character)
             logger.info("Filling credentials...")
             page.click('input[type="text"]')
-            page.type('input[type="text"]', username, delay=random.randint(50, 150))
+            for char in username:
+                page.keyboard.press(char)
+                time.sleep(random.uniform(0.05, 0.2))
             
             time.sleep(random.uniform(1.0, 2.5))
+            
+            # Simulate human mouse movement to password field
+            simulate_mouse_movement(page)
             page.click('input[type="password"]')
-            page.type('input[type="password"]', password, delay=random.randint(50, 150))
+            for char in password:
+                page.keyboard.press(char)
+                time.sleep(random.uniform(0.05, 0.2))
             
             # Human delay before clicking
             time.sleep(random.uniform(1.5, 3.5))
             
-            # Simulate mouse move to button
+            # Simulate smooth mouse move to button
             box = page.locator('button[type="submit"]').bounding_box()
             if box:
-                page.mouse.move(box["x"] + box["width"] / 2, box["y"] + box["height"] / 2)
+                target_x = box["x"] + box["width"] / 2 + random.randint(-5, 5)
+                target_y = box["y"] + box["height"] / 2 + random.randint(-2, 2)
+                # Move to button in steps
+                current_pos = {"x": random.randint(100, 500), "y": random.randint(100, 500)}
+                steps = random.randint(5, 10)
+                for i in range(steps):
+                    x = current_pos["x"] + (target_x - current_pos["x"]) * (i / steps)
+                    y = current_pos["y"] + (target_y - current_pos["y"]) * (i / steps)
+                    page.mouse.move(x, y)
+                    time.sleep(random.uniform(0.02, 0.08))
+                
+                page.mouse.move(target_x, target_y)
                 time.sleep(random.uniform(0.5, 1.0))
             
             # Click login
@@ -544,8 +594,18 @@ def update_target_link(page, new_link, user_id=None):
 
         # 3. Clear & Enter New Link (Defensive)
         logger.info(f"Entering new link: {new_link}")
+        
+        # Simulate human mouse movement to input field
+        simulate_mouse_movement(page)
+        
         input_field.click()
-        input_field.fill(new_link)
+        input_field.fill("") # Clear first
+        time.sleep(random.uniform(0.5, 1.5))
+        
+        for char in new_link:
+            input_field.type(char, delay=random.randint(20, 80))
+            
+        time.sleep(random.uniform(1.0, 2.0))
         
         # Double check value
         if input_field.input_value() != new_link:
@@ -629,6 +689,21 @@ def update_target_link(page, new_link, user_id=None):
 
             # Step 1: Trigger Action
             try:
+                # Simulate smooth mouse move to button
+                box = save_button.bounding_box()
+                if box:
+                    target_x = box["x"] + box["width"] / 2 + random.randint(-5, 5)
+                    target_y = box["y"] + box["height"] / 2 + random.randint(-2, 2)
+                    current_pos = {"x": random.randint(100, 500), "y": random.randint(100, 500)}
+                    steps = random.randint(5, 10)
+                    for i in range(steps):
+                        x = current_pos["x"] + (target_x - current_pos["x"]) * (i / steps)
+                        y = current_pos["y"] + (target_y - current_pos["y"]) * (i / steps)
+                        page.mouse.move(x, y)
+                        time.sleep(random.uniform(0.02, 0.08))
+                    page.mouse.move(target_x, target_y)
+                    time.sleep(random.uniform(0.5, 1.0))
+                
                 save_button.click(timeout=5000)
             except Exception as e:
                 logger.warning(f"Standard click failed: {e}. Attempting force click.")
