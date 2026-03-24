@@ -223,11 +223,16 @@ async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 async def setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /setup command to start the configuration flow."""
     user = update.effective_user
-    user_id = str(user.id)
+    user_id = user.id
     logger.info(f"User {user.id} ({user.username}) started setup.")
     
+    # Check if automation is running
+    if state_manager.is_running(user_id):
+        await update.message.reply_text("⚠️ Automation is currently running. Please /stop it before running setup.")
+        return
+    
     # Initialize user if not exists
-    user_data = state_manager.get_user(user.id)
+    user_data = state_manager.get_user(user_id)
     
     # Check if they already have config
     has_config = bool(user_data.get("username") and user_data.get("campaign"))
@@ -314,8 +319,52 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     
     user_data = state_manager.get_user(user_id)
     state = user_data.get("state")
+    running = state_manager.is_running(user_id)
+    lower_text = text.lower()
     
-    # --- 1. STRICT STATE MACHINE FOR SETUP FLOW ---
+    # --- 1. GLOBAL COMMAND INTERCEPTOR (During Runtime) ---
+    if running:
+        if "status" in lower_text or "progress" in lower_text:
+            return await status_command(update, context)
+        if "log" in lower_text:
+            return await logs_command(update, context)
+        if "stop" in lower_text or "halt" in lower_text:
+            return await stop_command(update, context)
+            
+        # IMPORTANT: DO NOT BREAK FLOW
+        await update.message.reply_text(
+            "🤖 Automation is running.\n\n"
+            "Use:\n"
+            "/status - View live dashboard\n"
+            "/logs - View activity logs\n"
+            "/stop - Stop automation"
+        )
+        return
+
+    # --- 2. INTENT DETECTION (Pre-AI) ---
+    if not state or state in [state_manager.READY_TO_RUN, state_manager.COMPLETED, state_manager.IDLE]:
+        if any(keyword in lower_text for keyword in ["start", "run now", "begin automation"]):
+            if is_user_fully_configured(user_data):
+                await update.message.reply_text("Triggering automation...")
+                return await run_command(update, context)
+            else:
+                await update.message.reply_text("Please complete /setup first.")
+                return await setup_command(update, context)
+                
+        if any(keyword in lower_text for keyword in ["stop", "halt", "pause"]):
+            await update.message.reply_text("Stopping automation...")
+            return await stop_command(update, context)
+            
+        if "status" in lower_text or "progress" in lower_text:
+            return await status_command(update, context)
+            
+        if "log" in lower_text:
+            return await logs_command(update, context)
+            
+        if "setup" in lower_text or "configure" in lower_text:
+            return await setup_command(update, context)
+
+    # --- 3. STRICT STATE MACHINE FOR SETUP FLOW ---
     if state == state_manager.WAITING_USERNAME:
         state_manager.update_user(user_id, {"username": text, "state": state_manager.WAITING_PASSWORD})
         await update.message.reply_text("Enter your password:")
@@ -365,23 +414,7 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text(completion_msg)
         return
 
-    # --- 2. INTENT DETECTION (Pre-AI) ---
-    lower_text = text.lower()
-    if any(keyword in lower_text for keyword in ["start", "run now", "begin automation"]):
-        if is_user_fully_configured(user_data):
-            await update.message.reply_text("Triggering automation...")
-            await run_command(update, context)
-            return
-        else:
-            await update.message.reply_text("Please complete /setup first.")
-            return
-            
-    if any(keyword in lower_text for keyword in ["stop", "halt", "pause"]):
-        await update.message.reply_text("Stopping automation...")
-        await stop_command(update, context)
-        return
-
-    # --- 3. AI ASSISTANT (For messy inputs / queries) ---
+    # --- 4. AI ASSISTANT (For messy inputs / queries) ---
     # Show typing indicator while LLM processes
     await context.bot.send_chat_action(chat_id=user_id, action='typing')
     
