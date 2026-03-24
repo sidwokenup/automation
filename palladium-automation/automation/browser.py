@@ -68,7 +68,7 @@ def launch_browser(user_id=None):
         
         launch_kwargs = {
             "user_data_dir": user_data_dir,
-            "headless": False,
+            "headless": True,
             "executable_path": "/usr/bin/chromium-browser",
             "user_agent": user_agent,
             "viewport": viewport,
@@ -142,7 +142,7 @@ def launch_browser(user_id=None):
                     return playwright, context, page
                 else:
                     browser = playwright.chromium.launch(
-                        headless=False,
+                        headless=True,
                         executable_path="/usr/bin/chromium-browser",
                         args=[
                             "--no-sandbox",
@@ -172,7 +172,7 @@ def launch_browser(user_id=None):
     else:
         logger.info("Launching standard browser...")
         browser = playwright.chromium.launch(
-            headless=False,
+            headless=True,
             executable_path="/usr/bin/chromium-browser",
             args=[
                 "--no-sandbox",
