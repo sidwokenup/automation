@@ -135,7 +135,7 @@ Instructions:
                         try:
                             # Start it
                             updated_data = state_manager.get_user(user_id)
-                            start_automation(user_id, updated_data, logging.getLogger('palladium_automation.runner'), application_instance)
+                            start_automation(user_id, updated_data, logging.getLogger('palladium_automation.runner'), bot_instance=application_instance)
                             tool_result = "Success: Automation started successfully."
                         except Exception as e:
                             tool_result = f"Failed to start: {str(e)}"

@@ -436,7 +436,7 @@ async def run_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     try:
         # Pass the global logger or create a specific one
         # Pass the application context
-        start_automation(user_id, user_data, logging.getLogger('palladium_automation.runner'), context.application)
+        start_automation(user_id, user_data, logging.getLogger('palladium_automation.runner'), bot_instance=context.application)
         # Note: start_automation now handles setting 'running': True in disk, and shouldn't change state.
         await update.message.reply_text("🚀 Automation started successfully!")
     except Exception as e:

@@ -184,9 +184,12 @@ def get_logs(user_id):
     """Retrieves logs for a specific user."""
     return user_logs.get(str(user_id), [])
 
-def start_automation(user_id, config, logger, application=None):
+def start_automation(user_id, config, logger, bot_instance=None):
     """Starts the automation loop for a user in a separate thread."""
     str_user_id = str(user_id)
+    
+    if bot_instance:
+        user_bots[str(user_id)] = bot_instance
     
     # Prevent Duplicate Start (CRITICAL)
     from telegram_bot.state_manager import load_users, save_users
@@ -212,9 +215,6 @@ def start_automation(user_id, config, logger, application=None):
     if not acquire_campaign(campaign_name):
         logger.error(f"Campaign {campaign_name} is already in use.")
         raise Exception(f"Campaign '{campaign_name}' is already running. Please stop it first.")
-
-    if application:
-        user_bots[str_user_id] = application
     
     if user_flags.get(str_user_id, False):
         logger.warning(f"Automation already running for user {user_id}")
