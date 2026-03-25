@@ -291,24 +291,94 @@ def simulate_mouse_movement(page):
         page.mouse.move(x, y)
         time.sleep(random.uniform(0.01, 0.05))
 
+def detect_login_fields(page):
+    selectors = [
+        "input[name='username']",
+        "input[name='email']",
+        "input[placeholder*='user']",
+        "input[placeholder*='email']",
+        "input[type='text']"
+    ]
+
+    for sel in selectors:
+        if page.locator(sel).count() > 0:
+            return sel
+
+    return None
+
+def detect_dashboard(page):
+    try:
+        return (
+            "dashboard" in page.url.lower()
+            or "campaign" in page.url.lower()
+            or page.locator("text=Campaign").count() > 0
+        )
+    except:
+        return False
+
 def login(page, username, password):
     """
     Logs into the website using SPA-aware multi-strategy detection, human delays, and retries.
     """
     # Check if already logged in first to save time with persistent sessions
-    if is_login_successful(page):
+    if is_login_successful(page) or detect_dashboard(page):
         logger.info("Session already active, skipping login.")
         return True
 
     MAX_RETRIES = 5
-    RETRY_DELAYS = [3, 5, 8, 10, 15]  # seconds
+    RETRY_DELAYS = [5, 10, 20, 20, 20]  # seconds
 
     # Limit to MAX_RETRIES attempts
     for attempt in range(MAX_RETRIES):
         try:
             logger.info(f"Navigating to login page (Attempt {attempt+1})...")
-            page.goto("https://next.palladium.expert")
+            page.goto("https://next.palladium.expert", wait_until="domcontentloaded")
             
+            # Robust page load wait
+            try:
+                page.wait_for_load_state("networkidle", timeout=15000)
+            except:
+                pass
+            page.wait_for_timeout(3000)
+            
+            # Bonus: Wait for body
+            try:
+                page.wait_for_selector("body", timeout=15000)
+            except:
+                pass
+                
+            print(f"[DEBUG] URL: {page.url}")
+            try:
+                print(f"[DEBUG] Title: {page.title()}")
+            except:
+                pass
+            
+            # Decision Logic
+            if detect_dashboard(page):
+                print("✅ Already logged in")
+                return True
+                
+            login_selector = detect_login_fields(page)
+            if login_selector:
+                print("🔐 Login form detected")
+            else:
+                print("⚠️ Unknown page state")
+                os.makedirs("logs", exist_ok=True)
+                page.screenshot(path=f"logs/debug_unknown_state_{int(time.time())}.png")
+                
+                # Handle render failures
+                logger.warning("No elements found. Reloading page...")
+                page.reload(wait_until="domcontentloaded")
+                try:
+                    page.wait_for_load_state("networkidle", timeout=15000)
+                except:
+                    pass
+                page.wait_for_timeout(3000)
+                
+                login_selector = detect_login_fields(page)
+                if not login_selector:
+                    raise Exception(f"Login page not fully loaded or blocked. Could not find login fields.")
+
             # Pre-login human behavior
             time.sleep(random.uniform(2.0, 4.0))
             simulate_mouse_movement(page)
@@ -316,23 +386,12 @@ def login(page, username, password):
             time.sleep(random.uniform(1.0, 2.0))
             page.mouse.wheel(0, random.randint(-200, -50))
             
-            # Wait for login fields
-            logger.info("Waiting for login fields...")
-            try:
-                page.wait_for_selector('input[type="text"]', state='visible', timeout=10000)
-            except Exception as e:
-                logger.error(f"Error waiting for selectors: {e}")
-                raise Exception(f"Login page not fully loaded: {e}")
-        
-            # Add a human-like delay before typing
-            time.sleep(random.uniform(2.0, 5.0))
-            
             # Simulate human mouse movement to username field
             simulate_mouse_movement(page)
             
             # Fill credentials with human typing delays (character by character)
             logger.info("Filling credentials...")
-            page.click('input[type="text"]')
+            page.click(login_selector)
             for char in username:
                 page.keyboard.press(char)
                 time.sleep(random.uniform(0.05, 0.2))
@@ -419,6 +478,9 @@ def login(page, username, password):
                 
         except Exception as e:
             logger.warning(f"Login attempt {attempt+1} failed explicitly: {e}")
+            os.makedirs("logs", exist_ok=True)
+            page.screenshot(path=f"logs/debug_login_fail_{int(time.time())}.png")
+            
             e_str = str(e).lower()
             
             # Immediately fail on critical errors that retries won't fix
