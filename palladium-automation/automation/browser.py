@@ -1,5 +1,8 @@
 from playwright.sync_api import sync_playwright
-from playwright_stealth import stealth_sync
+try: 
+    from playwright_stealth import stealth_sync 
+except ImportError: 
+    stealth_sync = None 
 import logging
 import time
 import random
@@ -109,10 +112,15 @@ def launch_browser(user_id=None):
         logger.info("Creating new page...")
         pages = context.pages
         page = pages[0] if pages else context.new_page()
-        try:
-            stealth_sync(page)
-        except Exception as e:
-            logger.warning(f"Stealth failed: {e}")
+        
+        if not stealth_sync: 
+            print("[WARNING] playwright_stealth not available, running without stealth") 
+            
+        if stealth_sync: 
+            try: 
+                stealth_sync(page) 
+            except Exception: 
+                pass 
         # Check if proxy is working before proceeding
         if proxy_config:
             try:
@@ -141,10 +149,14 @@ def launch_browser(user_id=None):
                     """)
                     pages = context.pages
                     page = pages[0] if pages else context.new_page()
-                    try:
-                        stealth_sync(page)
-                    except Exception as e:
-                        logger.warning(f"Stealth failed: {e}")
+                    if not stealth_sync: 
+                        print("[WARNING] playwright_stealth not available, running without stealth") 
+                        
+                    if stealth_sync: 
+                        try: 
+                            stealth_sync(page) 
+                        except Exception: 
+                            pass 
                     return playwright, context, page
                 else:
                     browser = playwright.chromium.launch(
@@ -171,10 +183,14 @@ def launch_browser(user_id=None):
                         Object.defineProperty(navigator, 'deviceMemory', {{ get: () => {device_memory} }});
                     """)
                     page = context.new_page()
-                    try:
-                        stealth_sync(page)
-                    except Exception as e:
-                        logger.warning(f"Stealth failed: {e}")
+                    if not stealth_sync: 
+                        print("[WARNING] playwright_stealth not available, running without stealth") 
+                        
+                    if stealth_sync: 
+                        try: 
+                            stealth_sync(page) 
+                        except Exception: 
+                            pass 
                     return playwright, browser, page
 
         return playwright, context, page
@@ -213,10 +229,14 @@ def launch_browser(user_id=None):
         """)
         logger.info("Creating new page...")
         page = context.new_page()
-        try:
-            stealth_sync(page)
-        except Exception as e:
-            logger.warning(f"Stealth failed: {e}")
+        if not stealth_sync: 
+            print("[WARNING] playwright_stealth not available, running without stealth") 
+            
+        if stealth_sync: 
+            try: 
+                stealth_sync(page) 
+            except Exception: 
+                pass 
         return playwright, browser, page
 
 def retry_action(action, retries=3):
