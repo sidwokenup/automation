@@ -156,6 +156,8 @@ def mark_error_resolved(user_id):
         return True
     return False
 
+from telegram_bot.utils.file_logger import write_log
+
 def add_log(user_id, message):
     """Adds a log entry for a specific user."""
     str_user_id = str(user_id)
@@ -171,6 +173,12 @@ def add_log(user_id, message):
     # Keep only last 25 logs
     if len(user_logs[str_user_id]) > 25:
         user_logs[str_user_id] = user_logs[str_user_id][-25:]
+
+    # NEW: persist to file 
+    try: 
+        write_log(user_id, message) 
+    except: 
+        pass 
 
 def get_logs(user_id):
     """Retrieves logs for a specific user."""
@@ -502,7 +510,34 @@ def automation_loop(user_id, config, logger):
             if link_index >= len(links):
                 link_index = 0
                 
-            current_link = links[link_index]
+            from telegram_bot.utils.link_api import get_next_link
+            try: 
+                api_result = get_next_link(user_id) 
+                
+                if api_result and api_result.get("url"): 
+                    current_link = api_result["url"] 
+                else: 
+                    # fallback to old logic 
+                    current_link = links[link_index] 
+                    
+            except Exception: 
+                current_link = links[link_index]
+            
+            if not current_link:
+                app_instance = user_bots.get(str(user_id)) 
+
+                message = """🚨 All Links Flagged! 
+ 
+All your links are no longer working. 
+ 
+Please add new links using /setup to continue automation. 
+""" 
+ 
+                if app_instance: 
+                    send_telegram_message(app_instance, user_id, message) 
+
+                stop_automation(user_id) 
+                break
             
             # Update status
             if user_id in user_status:
@@ -646,6 +681,9 @@ _Screenshot attached for debugging._"""
                 failure_count = 0
                 error_count = 0
                 
+                from telegram_bot.utils.error_tracker import clear_error 
+                clear_error(user_id) 
+                
                 # Update persistent index ONLY after successful update
                 link_index = (link_index + 1) % len(links)
                 
@@ -689,6 +727,43 @@ _Screenshot attached for debugging._"""
                             logger.error(f"[User {user_id}] Page reset entirely failed: {reload_err}")
     
             except Exception as e:
+                from telegram_bot.utils.error_tracker import save_error 
+                from telegram_bot.utils.error_classifier_simple import classify_error as classify_error_simple
+                
+                error_message_str = str(e) 
+                error_type_simple = classify_error_simple(error_message_str) 
+
+                save_error(user_id, { 
+                    "error_message": error_message_str, 
+                    "error_type": error_type_simple, 
+                    "context": "automation_loop", 
+                    "consecutive_errors": error_count + 1
+                }) 
+
+                try: 
+                    api_result = get_next_link(user_id) 
+                    
+                    if api_result and api_result.get("url"): 
+                        new_link = api_result["url"] 
+                        current_link = new_link 
+                        
+                        app_instance = user_bots.get(str(user_id)) 
+                        
+                        message = f"""🔄 Link Replaced Automatically 
+ 
+❌ Old link failed 
+✅ New link in use: 
+{new_link} 
+""" 
+ 
+                        if app_instance: 
+                            send_telegram_message(app_instance, user_id, message) 
+ 
+                        logger.info(f"[User {user_id}] Switched to new link: {new_link}") 
+                        add_log(user_id, f"Switched to new link: {new_link}") 
+                except: 
+                    pass 
+
                 error_msg = str(e)
                 error_count += 1
                 logger.error(f"[User {user_id}] Recoverable error during automation cycle: {e}. Error count: {error_count}/{MAX_ERRORS}")
@@ -718,6 +793,14 @@ _Screenshot attached for debugging._"""
                     if error_count >= MAX_ERRORS:
                         logger.error(f"[User {user_id}] Max error limit reached ({MAX_ERRORS}). Stopping automation.")
                         stop_reason = f"Reached maximum limit of {MAX_ERRORS} consecutive errors."
+                        
+                        save_error(user_id, { 
+                            "error_message": error_msg, 
+                            "error_type": error_type_simple, 
+                            "context": "max_error_stop", 
+                            "consecutive_errors": error_count, 
+                            "stop_reason": "MAX_CONSECUTIVE_ERRORS" 
+                        }) 
                     else:
                         logger.error(f"[User {user_id}] Critical error detected ({error_type.name}). Stopping automation.")
                         stop_reason = get_user_friendly_message(error_type, error_msg)

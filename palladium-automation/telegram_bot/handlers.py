@@ -44,6 +44,15 @@ async def start_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         "/users - View all active automations (Admin)"
     )
     await update.message.reply_text(welcome_message)
+    
+    from telegram_bot.utils.link_api import check_api_health 
+
+    api_ok = check_api_health() 
+
+    if api_ok: 
+        await update.message.reply_text("🔗 Link Service Connected ✅") 
+    else: 
+        await update.message.reply_text("⚠️ Link Service Not Reachable")
 
 async def help_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /help command."""
@@ -198,25 +207,19 @@ async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("❌ Please run /setup first")
         return
         
-    if not running:
-        if not is_user_fully_configured(user_data):
-            await update.message.reply_text("⚠️ Setup incomplete. Continue setup.")
-            return
-            
-        await update.message.reply_text("📭 Automation is not running.\nRun /run to start automation.")
-        return
-
     # 2. Get logs
-    logs = get_logs(user_id)
+    from telegram_bot.utils.file_logger import read_logs
+    
+    logs = read_logs(user_id, limit=20)
     
     if not logs:
-        await update.message.reply_text("📭 No logs available yet. They will appear here once the automation performs actions.")
+        await update.message.reply_text("📭 No logs available yet.")
         return
         
-    # 3. Format response (Last 15 logs)
+    # 3. Format response
     response = "📜 **Recent Logs:**\n\n"
-    for log in logs[-15:]:
-        response += f"`{log}`\n"
+    for log in logs:
+        response += f"`{log.strip()}`\n"
         
     await update.message.reply_text(response, parse_mode='Markdown')
 
@@ -302,6 +305,64 @@ async def delete_setup_command(update: Update, context: ContextTypes.DEFAULT_TYP
         del users_data[str(user_id)]
         state_manager.save_users(users_data)
     await update.message.reply_text("🗑 Setup deleted. Use /setup to reconfigure.")
+
+async def test_links_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    from telegram_bot.utils.link_api import get_next_link
+    
+    user_id = update.effective_user.id
+    
+    result = get_next_link(user_id)
+    
+    if not result or not result.get("url"):
+        await update.message.reply_text("🚨 No active links available")
+    else:
+        await update.message.reply_text(f"✅ Next link: {result['url']}")
+
+async def why_stopped_command(update: Update, context: ContextTypes.DEFAULT_TYPE): 
+    from telegram_bot.utils.error_tracker import load_error 
+    
+    user_id = update.effective_user.id 
+    error_data = load_error(user_id) 
+    
+    if not error_data: 
+        await update.message.reply_text("✅ No recent errors found. Automation stopped normally.") 
+        return 
+    
+    error_type = error_data.get("error_type", "UNKNOWN") 
+    message = error_data.get("error_message", "No details") 
+    count = error_data.get("consecutive_errors", 0) 
+    
+    if error_type == "BROWSER_CRASH": 
+        explanation = "Browser session crashed or page closed unexpectedly." 
+        suggestion = "Try changing proxy or restarting automation." 
+        
+    elif error_type == "TIMEOUT": 
+        explanation = "Website took too long to respond." 
+        suggestion = "Increase interval or check network stability." 
+        
+    elif error_type == "PROXY_ERROR": 
+        explanation = "Proxy connection failed." 
+        suggestion = "Use a different proxy." 
+        
+    else: 
+        explanation = "Unexpected error occurred." 
+        suggestion = "Check logs for more details." 
+
+    response = f"""❌ Automation Stopped 
+
+🧠 Reason: 
+{explanation} 
+
+📄 Technical Detail: 
+{message} 
+
+🔁 Occurred {count} times 
+
+💡 Suggested Fix: 
+{suggestion} 
+""" 
+    
+    await update.message.reply_text(response)
 
 async def setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /setup command to start the configuration flow."""
@@ -510,6 +571,15 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
             await update.message.reply_text("❌ At least 1 valid link is required.\nEnter links (comma-separated):")
             return
         state_manager.update_user(user_id, {"links": links, "state": state_manager.WAITING_INTERVAL})
+        
+        from telegram_bot.utils.link_api import add_links 
+        try: 
+            add_links(user_id, links) 
+            await update.message.reply_text("🔗 Links synced to Link Service ✅") 
+        except Exception as e:
+            logger.error(f"Failed to sync links: {e}")
+            await update.message.reply_text("⚠️ Failed to sync links to Link Service") 
+
         await update.message.reply_text("Enter interval in minutes (e.g., 10):")
         return
 
@@ -560,6 +630,12 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
     # --- 4. AI ASSISTANT (For messy inputs / queries) ---
     # Show typing indicator while LLM processes
     await context.bot.send_chat_action(chat_id=user_id, action='typing')
+    
+    if "why" in lower_text and "stop" in lower_text: 
+        from telegram_bot.agent import process_user_message 
+        response = await process_user_message(user_id, text, application_instance=context.application) 
+        await update.message.reply_text(response, parse_mode='Markdown') 
+        return 
     
     response = None
     try:

@@ -54,6 +54,12 @@ async def process_user_message(user_id: int, user_message: str, application_inst
     user_data = state_manager.get_user(user_id)
     running = state_manager.is_running(user_id)
     
+    from telegram_bot.utils.error_tracker import load_error 
+    from telegram_bot.utils.file_logger import read_logs 
+    
+    error_data = load_error(user_id) 
+    recent_logs = read_logs(user_id, limit=10) 
+    
     system_prompt = (
         "You are a helpful AI assistant for the Palladium Expert Playwright bot.\n"
         "Your job is to answer user questions, explain logs, check status, or help extract configuration details if they provide them messily.\n\n"
@@ -69,7 +75,23 @@ async def process_user_message(user_id: int, user_message: str, application_inst
         "3. If the user asks why it stopped or for logs, call `get_recent_logs_tool` and summarize the issues.\n"
         "4. Be concise, helpful, and friendly. Never hallucinate bot capabilities."
     )
-
+    
+    system_prompt += f""" 
+ 
+Recent Error Data: 
+{error_data} 
+ 
+Recent Logs: 
+{''.join(recent_logs)} 
+ 
+Instructions: 
+- If user asks why automation stopped → analyze error_data + logs 
+- Explain in simple language 
+- Provide possible causes 
+- Suggest 1-2 fixes 
+- Do NOT just repeat logs 
+""" 
+    
     try:
         model = genai.GenerativeModel(
             model_name="gemini-2.5-flash",

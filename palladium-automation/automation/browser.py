@@ -1,5 +1,5 @@
 from playwright.sync_api import sync_playwright
-from playwright_stealth import Stealth
+from playwright_stealth import stealth_sync
 import logging
 import time
 import random
@@ -110,8 +110,7 @@ def launch_browser(user_id=None):
         pages = context.pages
         page = pages[0] if pages else context.new_page()
         try:
-            stealth = Stealth()
-            stealth.apply_stealth_sync(page)
+            stealth_sync(page)
         except Exception as e:
             logger.warning(f"Stealth failed: {e}")
         # Check if proxy is working before proceeding
@@ -143,8 +142,7 @@ def launch_browser(user_id=None):
                     pages = context.pages
                     page = pages[0] if pages else context.new_page()
                     try:
-                        stealth = Stealth()
-                        stealth.apply_stealth_sync(page)
+                        stealth_sync(page)
                     except Exception as e:
                         logger.warning(f"Stealth failed: {e}")
                     return playwright, context, page
@@ -174,8 +172,7 @@ def launch_browser(user_id=None):
                     """)
                     page = context.new_page()
                     try:
-                        stealth = Stealth()
-                        stealth.apply_stealth_sync(page)
+                        stealth_sync(page)
                     except Exception as e:
                         logger.warning(f"Stealth failed: {e}")
                     return playwright, browser, page
@@ -217,8 +214,7 @@ def launch_browser(user_id=None):
         logger.info("Creating new page...")
         page = context.new_page()
         try:
-            stealth = Stealth()
-            stealth.apply_stealth_sync(page)
+            stealth_sync(page)
         except Exception as e:
             logger.warning(f"Stealth failed: {e}")
         return playwright, browser, page

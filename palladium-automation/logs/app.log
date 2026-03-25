@@ -543,3 +543,2360 @@ waiting for navigation to "**/change/**" until 'load'
 [2026-03-18 15:26:42,109] [ERROR] Error decoding D:\automation\palladium-automation\telegram_bot\data\user_data.json. Returning empty dict.
 [2026-03-18 15:26:42,135] [INFO] Global Session Manager initialized.
 [2026-03-18 15:26:42,910] [INFO] Bot is initialized and polling for updates...
+[2026-03-25 15:42:19,456] [INFO] Starting Palladium Telegram Bot...
+[2026-03-25 15:42:19,458] [INFO] Running auto-recovery on user states...
+[2026-03-25 15:42:19,459] [ERROR] Error decoding D:\automation\palladium-automation\telegram_bot\data\user_data.json: 'utf-8' codec can't decode byte 0xff in position 0: invalid start byte. Attempting recovery.
+[2026-03-25 15:42:19,526] [INFO] Checking 0 users for auto-recovery...
+[2026-03-25 15:42:19,527] [INFO] Auto-recovery completed.
+[2026-03-25 15:42:20,121] [INFO] Setting bot commands menu...
+[2026-03-25 15:42:20,125] [ERROR] Failed to start bot application: 'NoneType' object has no attribute 'run_once'
+[2026-03-25 15:42:20,125] [INFO] Bot shutdown complete.
+[2026-03-25 15:42:45,993] [INFO] Starting Palladium Telegram Bot...
+[2026-03-25 15:42:45,997] [INFO] Running auto-recovery on user states...
+[2026-03-25 15:42:46,067] [INFO] Checking 0 users for auto-recovery...
+[2026-03-25 15:42:46,067] [INFO] Auto-recovery completed.
+[2026-03-25 15:42:46,761] [INFO] Setting bot commands menu...
+[2026-03-25 15:42:46,762] [INFO] Bot is initialized and polling for updates...
+[2026-03-25 15:42:52,539] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:42:58,376] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:43:05,441] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:43:11,384] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:43:20,269] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:43:33,798] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:47:00,397] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:47:06,191] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:47:13,202] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:47:19,197] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:47:28,107] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:47:41,887] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:48:01,939] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:48:49,723] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:49:24,550] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:49:59,071] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:50:33,661] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:51:08,171] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:51:42,783] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:52:17,395] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:52:51,904] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:53:26,415] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:54:00,944] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:54:35,538] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:55:10,561] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:55:45,173] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 381, in _request_wrapper
+    raise Conflict(message)
+telegram.error.Conflict: Conflict: terminated by other getUpdates request; make sure that only one bot instance is running
+[2026-03-25 15:58:05,041] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 15:58:06,066] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 15:58:07,587] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:02:20,719] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:02:24,121] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:02:29,204] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:02:56,114] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:03:07,505] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:03:24,591] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:03:50,249] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:04:20,273] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:04:50,276] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:05:20,295] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:05:50,308] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed
+[2026-03-25 17:06:20,337] [ERROR] Exception while handling an update:
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 66, in map_httpcore_exceptions
+    yield
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 366, in handle_async_request
+    resp = await self._pool.handle_async_request(req)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 256, in handle_async_request
+    raise exc from None
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection_pool.py", line 236, in handle_async_request
+    response = await connection.handle_async_request(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 101, in handle_async_request
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 78, in handle_async_request
+    stream = await self._connect(request)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_async\connection.py", line 124, in _connect
+    stream = await self._network_backend.connect_tcp(**kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\auto.py", line 31, in connect_tcp
+    return await self._backend.connect_tcp(
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_backends\anyio.py", line 113, in connect_tcp
+    with map_exceptions(exc_map):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpcore\_exceptions.py", line 14, in map_exceptions
+    raise to_exc(exc) from exc
+httpcore.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 268, in do_request
+    res = await self._client.request(
+          ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1530, in request
+    return await self.send(request, auth=auth, follow_redirects=follow_redirects)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1617, in send
+    response = await self._send_handling_auth(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1645, in _send_handling_auth
+    response = await self._send_handling_redirects(
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1682, in _send_handling_redirects
+    response = await self._send_single_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_client.py", line 1719, in _send_single_request
+    response = await transport.handle_async_request(request)
+               ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 365, in handle_async_request
+    with map_httpcore_exceptions():
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\contextlib.py", line 158, in __exit__
+    self.gen.throw(typ, value, traceback)
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\httpx\_transports\default.py", line 83, in map_httpcore_exceptions
+    raise mapped_exc(message) from exc
+httpx.ConnectError: [Errno 11001] getaddrinfo failed
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 688, in _network_loop_retry
+    if not await action_cb():
+           ^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 384, in polling_action_cb
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_updater.py", line 373, in polling_action_cb
+    updates = await self.bot.get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 558, in get_updates
+    updates = await super().get_updates(
+              ^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 525, in decorator
+    result = await func(self, *args, **kwargs)  # skipcq: PYL-E1102
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 3584, in get_updates
+    await self._post(
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 613, in _post
+    return await self._do_post(
+           ^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\ext\_extbot.py", line 340, in _do_post
+    return await super()._do_post(
+           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\_bot.py", line 641, in _do_post
+    return await request.post(
+           ^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 200, in post
+    result = await self._request_wrapper(
+             ^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 340, in _request_wrapper
+    raise exc
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_baserequest.py", line 330, in _request_wrapper
+    code, payload = await self.do_request(
+                    ^^^^^^^^^^^^^^^^^^^^^^
+  File "C:\Users\acer\AppData\Local\Programs\Python\Python311\Lib\site-packages\telegram\request\_httpxrequest.py", line 292, in do_request
+    raise NetworkError(f"httpx.{err.__class__.__name__}: {err}") from err
+telegram.error.NetworkError: httpx.ConnectError: [Errno 11001] getaddrinfo failed

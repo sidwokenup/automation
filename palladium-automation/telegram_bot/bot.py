@@ -12,7 +12,7 @@ from telegram.error import NetworkError, TelegramError
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 from utils.logger import setup_logger
-from telegram_bot.handlers import start_command, help_command, status_command, setup_command, handle_message, run_command, stop_command, logs_command, users_command, progress_command, proxy_command, proxy_status_command, delete_proxy_command, delete_setup_command
+from telegram_bot.handlers import start_command, help_command, status_command, setup_command, handle_message, run_command, stop_command, logs_command, users_command, progress_command, proxy_command, proxy_status_command, delete_proxy_command, delete_setup_command, test_links_command, why_stopped_command
 
 # Global variable to store the bot application instance
 bot_app = None
@@ -32,12 +32,15 @@ async def set_bot_commands(application):
         BotCommand("run", "Start automation"),
         BotCommand("stop", "Stop automation"),
         BotCommand("status", "Check your automation status"),
+        BotCommand("progress", "Check automation progress"),
         BotCommand("logs", "View recent activity logs"),
         BotCommand("users", "View all active automations (Admin)"),
         BotCommand("proxy", "Setup proxy configuration"),
         BotCommand("proxy_status", "Check proxy status"),
         BotCommand("delete_proxy", "Remove current proxy"),
-        BotCommand("delete_setup", "Clear your automation setup")
+        BotCommand("delete_setup", "Clear your automation setup"),
+        BotCommand("test_links", "Test next active link in pool"),
+        BotCommand("why_stopped", "Find out why automation stopped")
     ]
     await application.bot.set_my_commands(commands)
 
@@ -92,6 +95,8 @@ def main():
         application.add_handler(CommandHandler("proxy_status", proxy_status_command))
         application.add_handler(CommandHandler("delete_proxy", delete_proxy_command))
         application.add_handler(CommandHandler("delete_setup", delete_setup_command))
+        application.add_handler(CommandHandler("test_links", test_links_command))
+        application.add_handler(CommandHandler("why_stopped", why_stopped_command))
 
         # Register message handler for setup flow
         application.add_handler(MessageHandler(filters.TEXT & ~filters.COMMAND, handle_message))
