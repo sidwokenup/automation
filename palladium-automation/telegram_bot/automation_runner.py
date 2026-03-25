@@ -668,6 +668,31 @@ _Screenshot attached for debugging._"""
                         raise open_err
                 
                 # The update_target_link already has internal AI recovery now
+                # 🧠 Real Link Validation Before Update
+                response = page.goto(current_link, timeout=30000) 
+ 
+                link_failed = False 
+                
+                if response: 
+                    status = response.status 
+                
+                    if status >= 400: 
+                        link_failed = True 
+                
+                # OPTIONAL content check 
+                page_content = page.content() 
+                
+                if "not found" in page_content.lower() or "blocked" in page_content.lower(): 
+                    link_failed = True 
+
+                if link_failed: 
+                    logger.warning(f"[User {user_id}] Link truly failed: {current_link}") 
+                
+                    add_log(user_id, f"Link failed (validated): {current_link}") 
+                
+                    # mark_link_failed(current_link) # We'll just let the worker handle marking it failed for now to avoid DB coupling here, or we can just increment error count
+                    raise Exception(f"Link Validation Failed for {current_link}")
+                    
                 update_target_link(page, current_link, user_id=user_id)
                 
                 logger.info(f"[User {user_id}] Updated link successfully: {current_link}")
@@ -727,24 +752,88 @@ _Screenshot attached for debugging._"""
                             logger.error(f"[User {user_id}] Page reset entirely failed: {reload_err}")
     
             except Exception as e:
+                error_message = str(e) 
+ 
+                is_browser_crash = ( 
+                    "Target page" in error_message or 
+                    "browser has been closed" in error_message or 
+                    "context has been closed" in error_message 
+                ) 
+                
+                is_timeout = ( 
+                    "timeout" in error_message.lower() 
+                ) 
+                
+                is_network_issue = ( 
+                    "ERR_CONNECTION" in error_message or 
+                    "net::" in error_message 
+                ) 
+
+                if is_browser_crash: 
+                    logger.warning(f"[User {user_id}] Browser crashed, restarting...") 
+                
+                    add_log(user_id, "Browser crashed, restarting session...") 
+                
+                    try: 
+                        if page: 
+                            page.close() 
+                        if context: 
+                            context.close() 
+                        if browser: 
+                            browser.close() 
+                    except: 
+                        pass 
+                
+                    playwright, browser, page = launch_browser(user_id=user_id)
+                    context = page.context
+                
+                    error_count = 0 
+                    continue 
+
+                elif is_timeout or is_network_issue: 
+                    logger.warning(f"[User {user_id}] Temporary issue, retrying...") 
+                
+                    add_log(user_id, "Temporary issue, retrying same link...") 
+                
+                    time.sleep(3) 
+                
+                    continue 
+
                 from telegram_bot.utils.error_tracker import save_error 
                 from telegram_bot.utils.error_classifier_simple import classify_error as classify_error_simple
                 
-                error_message_str = str(e) 
-                error_type_simple = classify_error_simple(error_message_str) 
+                error_type_simple = classify_error_simple(error_message) 
 
                 save_error(user_id, { 
-                    "error_message": error_message_str, 
+                    "error_message": error_message, 
                     "error_type": error_type_simple, 
                     "context": "automation_loop", 
                     "consecutive_errors": error_count + 1
                 }) 
 
                 try: 
+                    retry_map = user_status.get(str(user_id), {}).get("retry_map", {})
+                    if current_link not in retry_map: 
+                        retry_map[current_link] = 0 
+                    
+                    retry_map[current_link] += 1 
+                    
+                    # Store back in user_status for persistence across loops
+                    if str(user_id) in user_status:
+                        user_status[str(user_id)]["retry_map"] = retry_map
+                    
+                    if retry_map[current_link] < 2: 
+                        logger.info("Retrying before marking failed...") 
+                        continue 
+
                     api_result = get_next_link(user_id) 
                     
                     if api_result and api_result.get("url"): 
                         new_link = api_result["url"] 
+                        if new_link == current_link: 
+                            logger.warning("Same link returned, skipping...") 
+                            continue 
+
                         current_link = new_link 
                         
                         app_instance = user_bots.get(str(user_id)) 
@@ -764,7 +853,7 @@ _Screenshot attached for debugging._"""
                 except: 
                     pass 
 
-                error_msg = str(e)
+                error_msg = error_message
                 error_count += 1
                 logger.error(f"[User {user_id}] Recoverable error during automation cycle: {e}. Error count: {error_count}/{MAX_ERRORS}")
                 add_log(user_id, f"Recoverable error: {error_msg} (Count: {error_count})")
