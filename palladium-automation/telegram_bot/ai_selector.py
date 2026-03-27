@@ -2,7 +2,11 @@ import os
 import json
 import logging
 from PIL import Image
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
 
 logger = logging.getLogger('palladium_automation.ai_selector')
 
@@ -60,6 +64,10 @@ def generate_selector_with_gemini(html_content, screenshot_path, action_descript
     """
     Uses Gemini Vision to generate a new Playwright selector based on the page state.
     """
+    if not GENAI_AVAILABLE:
+        logger.warning("GenAI module not available, skipping AI validation")
+        return None
+        
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         logger.error("GEMINI_API_KEY is not set. Cannot use AI self-healing.")

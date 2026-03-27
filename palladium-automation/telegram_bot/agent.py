@@ -1,7 +1,12 @@
 import os
 import json
 import logging
-import google.generativeai as genai
+try:
+    import google.generativeai as genai
+    GENAI_AVAILABLE = True
+except ImportError:
+    GENAI_AVAILABLE = False
+
 from telegram_bot import state_manager
 from telegram_bot.automation_runner import start_automation, stop_automation, get_status, get_logs
 
@@ -9,6 +14,8 @@ logger = logging.getLogger('palladium_automation.agent')
 
 # Initialize Gemini client
 def setup_gemini():
+    if not GENAI_AVAILABLE:
+        raise ValueError("google.generativeai module is not installed")
     api_key = os.getenv("GEMINI_API_KEY")
     if not api_key:
         raise ValueError("Missing GEMINI_API_KEY in environment variables")
