@@ -364,6 +364,88 @@ async def why_stopped_command(update: Update, context: ContextTypes.DEFAULT_TYPE
     
     await update.message.reply_text(response)
 
+async def links_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
+    user = state_manager.get_user(user_id)
+
+    # Note: In phase 2/3, we stored links via API. 
+    # But as requested by prompt to fetch from user_data, we'll try API first, then fallback to user_data
+    from telegram_bot.utils.link_api import get_active_links
+    links = get_active_links(user_id)
+    
+    if not links:
+        links = user.get("active_links", [])
+
+    if not links:
+        await update.message.reply_text("📦 No active links found.")
+        return
+
+    msg = "📦 Active Links:\n\n"
+
+    for i, link in enumerate(links, 1):
+        msg += f"{i}. {link}\n"
+
+    await update.message.reply_text(msg)
+
+async def flagged_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
+    user = state_manager.get_user(user_id)
+
+    flagged = user.get("flagged_links", [])
+
+    if not flagged:
+        await update.message.reply_text("🚫 No flagged links.")
+        return
+
+    msg = "🚫 Flagged Links:\n\n"
+
+    for i, link in enumerate(flagged, 1):
+        msg += f"{i}. {link}\n"
+
+    await update.message.reply_text(msg)
+
+async def current_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
+    user = state_manager.get_user(user_id)
+    
+    # Try to get from running status first for most accurate live data
+    from telegram_bot.automation_runner import user_status
+    live_status = user_status.get(user_id, {})
+
+    link = live_status.get("current_link") or user.get("current_link")
+    index = live_status.get("current_index") or user.get("current_index", 0)
+
+    if not link:
+        await update.message.reply_text("🔗 No active link currently.")
+        return
+
+    msg = f"🔗 Current Link:\n{link}\n\n📍 Index: {index}"
+
+    await update.message.reply_text(msg)
+
+async def stats_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
+    user_id = str(update.effective_user.id)
+    user = state_manager.get_user(user_id)
+
+    # Use API for active count if available
+    from telegram_bot.utils.link_api import get_active_links
+    api_active = get_active_links(user_id)
+    
+    active = len(api_active) if api_active else len(user.get("active_links", []))
+    flagged = len(user.get("flagged_links", []))
+
+    stats = user.get("link_stats", {})
+
+    msg = (
+        "📊 Link Stats:\n\n"
+        f"✅ Active: {active}\n"
+        f"❌ Flagged: {flagged}\n"
+        f"🔁 Rotations: {stats.get('total_rotations', 0)}\n"
+        f"⚠️ Failures: {stats.get('failures', 0)}"
+    )
+
+    await update.message.reply_text(msg)
+
 async def setup_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /setup command to start the configuration flow."""
     user = update.effective_user

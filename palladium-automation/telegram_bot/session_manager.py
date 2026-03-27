@@ -34,7 +34,6 @@ class SessionManager:
             self.playwright = sync_playwright().start()
             self.browser = self.playwright.chromium.launch(
                 headless=True,
-                executable_path="/usr/bin/chromium-browser",
                 args=[
                     "--no-sandbox",
                     "--disable-dev-shm-usage",

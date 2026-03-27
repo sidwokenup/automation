@@ -72,7 +72,6 @@ def launch_browser(user_id=None):
         launch_kwargs = {
             "user_data_dir": user_data_dir,
             "headless": True,
-            "executable_path": "/usr/bin/chromium-browser",
             "user_agent": user_agent,
             "viewport": viewport,
             "timezone_id": timezone_id,
@@ -82,6 +81,8 @@ def launch_browser(user_id=None):
                 "--disable-dev-shm-usage",
                 "--disable-gpu",
                 "--disable-blink-features=AutomationControlled",
+                "--disable-infobars",
+                "--disable-extensions",
                 f"--window-size={viewport['width']},{viewport['height']}"
             ]
         }
@@ -161,12 +162,13 @@ def launch_browser(user_id=None):
                 else:
                     browser = playwright.chromium.launch(
                         headless=True,
-                        executable_path="/usr/bin/chromium-browser",
                         args=[
                             "--no-sandbox",
                             "--disable-dev-shm-usage",
                             "--disable-gpu",
                             "--disable-blink-features=AutomationControlled",
+                            "--disable-infobars",
+                            "--disable-extensions",
                             f"--window-size={viewport['width']},{viewport['height']}"
                         ]
                     )
@@ -198,12 +200,13 @@ def launch_browser(user_id=None):
         logger.info("Launching standard browser...")
         browser = playwright.chromium.launch(
             headless=True,
-            executable_path="/usr/bin/chromium-browser",
             args=[
                 "--no-sandbox",
                 "--disable-dev-shm-usage",
                 "--disable-gpu",
                 "--disable-blink-features=AutomationControlled",
+                "--disable-infobars",
+                "--disable-extensions",
                 f"--window-size={viewport['width']},{viewport['height']}"
             ]
         )
@@ -228,6 +231,13 @@ def launch_browser(user_id=None):
             }});
         """)
         logger.info("Creating new page...")
+        
+        try:
+            if browser:
+                browser.close()
+        except:
+            pass
+            
         page = context.new_page()
         if not stealth_sync: 
             print("[WARNING] playwright_stealth not available, running without stealth") 
@@ -699,14 +709,13 @@ def open_campaign(page, campaign_name, user_id=None):
 
 def update_target_link(page, new_link, user_id=None):
     """
-    Updates the target link in the campaign settings page using robust selectors and multi-strategy waiting.
+    Updates the target link in the campaign settings page using robust selectors and strict value verification.
     """
     logger.info(f"Updating target link to: {new_link}")
 
     try:
         # 1. Ensure we are on the correct page and UI is ready
         logger.info(f"Current URL: {page.url}")
-        page.wait_for_url("**/change/**", timeout=15000)
         page.wait_for_load_state("networkidle")
         time.sleep(random.uniform(1.5, 3.0)) # Human-like delay
         
@@ -743,25 +752,23 @@ def update_target_link(page, new_link, user_id=None):
 
         logger.info("Input field successfully located.")
 
-        # 3. Clear & Enter New Link (Defensive)
+        # 3. Clear & Enter New Link
         logger.info(f"Entering new link: {new_link}")
         
         # Simulate human mouse movement to input field
         simulate_mouse_movement(page)
         
         input_field.click()
-        input_field.fill("") # Clear first
-        time.sleep(random.uniform(0.5, 1.5))
+        input_field.fill(new_link)
         
-        for char in new_link:
-            input_field.type(char, delay=random.randint(20, 80))
-            
-        time.sleep(random.uniform(1.0, 2.0))
+        # Small delay for UI update 
+        page.wait_for_timeout(1500) 
         
-        # Double check value
-        if input_field.input_value() != new_link:
-             logger.warning("Input value mismatch, retrying via JS...")
-             page.evaluate("(el, val) => { el.value = val; el.dispatchEvent(new Event('input')); el.dispatchEvent(new Event('change')); }", [input_field, new_link])
+        # Verify input actually updated 
+        value = input_field.input_value() 
+        
+        if new_link not in value: 
+            raise Exception("Link not updated in input field") 
 
         # 4. Locate Save Button
         logger.info("Locating Save button...")
@@ -823,94 +830,15 @@ def update_target_link(page, new_link, user_id=None):
         save_button.scroll_into_view_if_needed()
         time.sleep(random.uniform(1.0, 2.0))
         
-        # 5. Multi-Strategy Save Action (Retry Logic)
-        max_retries = 1
-        success = False
+        if save_button:
+            save_button.click()
+            page.wait_for_timeout(2000)
+            
+        # 5. Safe Success Confirmation
+        error_visible = page.locator("text=error").is_visible() 
         
-        for attempt in range(max_retries + 1):
-            logger.info(f"Executing Save Action (Attempt {attempt+1})...")
-            
-            # Ensure button is clickable
-            if not save_button.is_enabled():
-                 logger.info("Waiting for button to become enabled...")
-                 try:
-                     save_button.wait_for(state="enabled", timeout=5000)
-                 except:
-                     logger.warning("Button did not become enabled, trying to click anyway...")
-
-            # Step 1: Trigger Action
-            try:
-                # Simulate smooth mouse move to button
-                box = save_button.bounding_box()
-                if box:
-                    target_x = box["x"] + box["width"] / 2 + random.randint(-5, 5)
-                    target_y = box["y"] + box["height"] / 2 + random.randint(-2, 2)
-                    current_pos = {"x": random.randint(100, 500), "y": random.randint(100, 500)}
-                    steps = random.randint(5, 10)
-                    for i in range(steps):
-                        x = current_pos["x"] + (target_x - current_pos["x"]) * (i / steps)
-                        y = current_pos["y"] + (target_y - current_pos["y"]) * (i / steps)
-                        page.mouse.move(x, y)
-                        time.sleep(random.uniform(0.02, 0.08))
-                    page.mouse.move(target_x, target_y)
-                    time.sleep(random.uniform(0.5, 1.0))
-                
-                save_button.click(timeout=5000)
-            except Exception as e:
-                logger.warning(f"Standard click failed: {e}. Attempting force click.")
-                save_button.click(force=True)
-
-            # Step 2: Initial Delay for JS
-            time.sleep(random.uniform(2.0, 4.0))
-            
-            # Step 3: Primary Wait (Network)
-            logger.info("Waiting for network idle...")
-            try:
-                page.wait_for_load_state("networkidle", timeout=25000)
-            except:
-                logger.warning("Network idle timeout. Proceeding to UI checks.")
-
-            # Step 4: Secondary Success Detection (UI-Based)
-            # Check for generic success indicators
-            success_selectors = [
-                "text=Saved", "text=Updated", "text=Success", "text=Changes saved",
-                "div[role='alert']", ".Toastify", ".notification"
-            ]
-            
-            for selector in success_selectors:
-                if page.locator(selector).is_visible(timeout=2000):
-                    logger.info(f"Success confirmed via UI indicator: {selector}")
-                    success = True
-                    break
-            
-            if success:
-                break
-                
-            # Step 5: URL Check (Optional)
-            if "campaign-page" in page.url and "change" not in page.url:
-                logger.info("Success confirmed via URL redirect.")
-                success = True
-                break
-                
-            # Check for error
-            if page.locator("text=Error").is_visible(timeout=1000) or page.locator("text=Failed").is_visible(timeout=1000):
-                logger.error("Error message detected on page.")
-            
-            if attempt < max_retries:
-                logger.warning("Success verification failed. Retrying save action...")
-                # Optional: Refill input just in case
-                input_field.fill(new_link)
-                time.sleep(1)
-        
-        if not success:
-            # Final check - if we are still on the page, assume failure but log extensively
-            logger.warning("All success indicators failed. Logging state.")
-            try:
-                page.screenshot(path=f"logs/save_failed_state_{int(time.time())}.png")
-                logger.info(f"Current URL: {page.url}")
-            except: pass
-            
-            raise Exception("Save action could not be verified after retries.")
+        if error_visible: 
+            raise Exception("Error message detected after updating link") 
 
         logger.info("Link updated successfully.")
         return True

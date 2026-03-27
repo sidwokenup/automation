@@ -121,6 +121,14 @@ MAX_ERRORS = 5 # Maximum consecutive errors before stopping automation
 from telegram import Bot
 from telegram_bot.utils.notifier import send_telegram_photo, send_telegram_message
 
+def notify_user(user_id, message): 
+    try: 
+        bot = user_bots.get(str(user_id)) 
+        if bot: 
+            send_telegram_message(bot, user_id, message) 
+    except Exception as e: 
+        logger.error(f"Notification failed: {e}") 
+
 # We no longer need the direct send_telegram_message function here as we use the notifier
 
 # Removed send_error_alert as it is no longer needed (async wrapper)
@@ -219,6 +227,14 @@ def start_automation(user_id, config, logger, bot_instance=None):
     if user_flags.get(str_user_id, False):
         logger.warning(f"Automation already running for user {user_id}")
         return False
+
+    # Reset State on /run (IMPORTANT)
+    user_data[str_user_id]["current_index"] = 0
+    user_data[str_user_id]["retry_map"] = {}
+    user_data[str_user_id]["link_stats"] = {
+        "total_rotations": 0,
+        "failures": 0
+    }
 
     # Set flag to True
     user_flags[str_user_id] = True
@@ -505,25 +521,46 @@ def automation_loop(user_id, config, logger):
             if str_uid not in users_data or not users_data[str_uid].get("running"):
                 break
 
+            # Periodic Browser Restart (Memory Cleanup)
+            MAX_CYCLES_BEFORE_RESTART = 20
+            cycle_count += 1
+            if cycle_count >= MAX_CYCLES_BEFORE_RESTART:
+                add_log(user_id, "🔄 Restarting browser (memory cleanup)")
+                try:
+                    if page: page.close()
+                    if context: context.close()
+                    if browser: browser.close()
+                except:
+                    pass
+                
+                playwright, browser, page = launch_browser(user_id=user_id)
+                context = page.context
+                cycle_count = 0
                 
             # Validate index (e.g. if user updated links and removed some)
             if link_index >= len(links):
                 link_index = 0
                 
-            from telegram_bot.utils.link_api import get_next_link
-            try: 
-                api_result = get_next_link(user_id) 
-                
-                if api_result and api_result.get("url"): 
-                    current_link = api_result["url"] 
-                else: 
-                    # fallback to old logic 
-                    current_link = links[link_index] 
-                    
-            except Exception: 
-                current_link = links[link_index]
+            from telegram_bot.state_manager import get_user, update_user
+            user = get_user(user_id)
             
-            if not current_link:
+            # Ensure initialization
+            active_links = user.get("active_links", links) # Fallback to config links if active_links empty/missing
+            flagged_links = user.get("flagged_links", [])
+            user_current_index = user.get("current_index", link_index)
+            retry_map = user.get("retry_map", {})
+            link_stats = user.get("link_stats", {"total_rotations": 0, "failures": 0})
+            
+            # Save initialized structure back just in case
+            update_user(user_id, {
+                "active_links": active_links,
+                "flagged_links": flagged_links,
+                "retry_map": retry_map,
+                "link_stats": link_stats
+            })
+
+            # Get Next Link (FIX CORE BUG)
+            if not active_links:
                 app_instance = user_bots.get(str(user_id)) 
 
                 message = """🚨 All Links Flagged! 
@@ -538,16 +575,42 @@ Please add new links using /setup to continue automation.
 
                 stop_automation(user_id) 
                 break
+                
+            user_current_index = user_current_index % len(active_links)
+            current_link = active_links[user_current_index]
+            
+            # Update user state with selected link
+            update_user(user_id, {
+                "current_link": current_link,
+                "current_index": user_current_index
+            })
+
+            # Prevent Same Link Loop
+            last_link = user.get("last_link")
+            if current_link == last_link:
+                add_log(user_id, "Skipping duplicate link cycle")
+                update_user(user_id, {"current_index": user_current_index + 1})
+                continue
+                
+            update_user(user_id, {"last_link": current_link})
+            
+            # Retry Control Per Link initialization
+            if current_link not in retry_map:
+                retry_map[current_link] = 0
+                update_user(user_id, {"retry_map": retry_map})
+            
+            if user_id in user_status and user_status[user_id].get("current_link") and user_status[user_id]["current_link"] != current_link:
+                notify_user(user_id, f"🔄 Link Switched\n\n➡️ Now using:\n{current_link}")
             
             # Update status
             if user_id in user_status:
                 user_status[user_id]["current_link"] = current_link
-                user_status[user_id]["current_index"] = link_index + 1
+                user_status[user_id]["current_index"] = user_current_index + 1
 
             try:
                 start_time = time.time()
-                logger.info(f"[User {user_id}] Starting cycle with link index {link_index}: {current_link}")
-                add_log(user_id, f"Using link index: {link_index}")
+                logger.info(f"[User {user_id}] Starting cycle with link index {user_current_index}: {current_link}")
+                add_log(user_id, f"[Cycle {cycle_count}] Using link: {current_link}")
                 
                 # Check for session expiry at the start of the loop
                 if "login" in page.url.lower():
@@ -690,13 +753,59 @@ _Screenshot attached for debugging._"""
                 
                     add_log(user_id, f"Link failed (validated): {current_link}") 
                 
-                    # mark_link_failed(current_link) # We'll just let the worker handle marking it failed for now to avoid DB coupling here, or we can just increment error count
+                    from telegram_bot.state_manager import get_user, update_user
+                    user_data = get_user(user_id)
+                    
+                    active_links = user_data.get("active_links", [])
+                    if current_link in active_links:
+                        active_links.remove(current_link)
+                    
+                    flagged_links = user_data.get("flagged_links", [])
+                    if current_link not in flagged_links:
+                        flagged_links.append(current_link)
+                        
+                    retry_map.pop(current_link, None)
+                    
+                    link_stats["failures"] = link_stats.get("failures", 0) + 1
+                    
+                    update_user(user_id, {
+                        "active_links": active_links,
+                        "flagged_links": flagged_links,
+                        "retry_map": retry_map,
+                        "link_stats": link_stats
+                    })
+                    
+                    notify_user( 
+                        user_id, 
+                        f"🚫 Link Removed\n\n❌ {current_link}\n\nReason: Validation failed\n\n📦 Remaining Links: {len(active_links)}" 
+                    ) 
+                    
                     raise Exception(f"Link Validation Failed for {current_link}")
                     
-                update_target_link(page, current_link, user_id=user_id)
+                add_log(user_id, f"Trying link: {current_link}") 
+                success = update_target_link(page, current_link, user_id=user_id)
                 
-                logger.info(f"[User {user_id}] Updated link successfully: {current_link}")
-                add_log(user_id, f"Updated link successfully: {current_link}")
+                # Fetch value explicitly for logging since the original input_value check was moved to browser.py
+                # This ensures we don't break the log requirements in the prompt
+                try:
+                    value = page.input_value("input[placeholder*='http']")
+                except:
+                    value = "unknown"
+                add_log(user_id, f"Input field value after paste: {value}") 
+                
+                if success: 
+                    logger.info(f"[User {user_id}] Updated link successfully: {current_link}")
+                    add_log(user_id, f"Link updated successfully")
+                    
+                    error_count = 0 
+                    
+                    # Update Stats
+                    link_stats["total_rotations"] = link_stats.get("total_rotations", 0) + 1
+                    
+                    # Move to next link 
+                    user_current_index = (user_current_index + 1) % len(active_links) if active_links else 0
+                else: 
+                    raise Exception("Update failed") 
                 
                 # Update status after success
                 if user_id in user_status:
@@ -706,21 +815,27 @@ _Screenshot attached for debugging._"""
                 failure_count = 0
                 error_count = 0
                 
+                # Reset temp notification flag
+                user = user_status.get(str(user_id), {})
+                if "temp_notified" in user:
+                    user["temp_notified"] = False
+                    
+                # Reset Retry After Success
+                user.get("retry_map", {}).pop(current_link, None)
+                
                 from telegram_bot.utils.error_tracker import clear_error 
                 clear_error(user_id) 
                 
-                # Update persistent index ONLY after successful update
-                link_index = (link_index + 1) % len(links)
-                
                 from telegram_bot.state_manager import update_user
                 update_user(user_id, {
-                    "current_index": link_index,
-                    "total_links": len(links),
+                    "current_index": user_current_index,
+                    "total_links": len(active_links),
                     "last_run_time": time.time(),
-                    "cycle_start_time": start_time
+                    "cycle_start_time": start_time,
+                    "link_stats": link_stats
                 })
                 
-                add_log(user_id, f"Next index will be: {link_index}")
+                add_log(user_id, f"Next index will be: {user_current_index}")
                 
                 # Mark error as resolved if it was active
                 if mark_error_resolved(user_id):
@@ -731,48 +846,53 @@ _Screenshot attached for debugging._"""
                 # Note: user data is already saved to disk by update_user above
                 
                 # Periodic Page Reset for Stability (CRITICAL)
-                cycle_count += 1
-                if cycle_count >= 3:
-                    logger.info(f"[User {user_id}] Refreshing page for stability after {cycle_count} cycles.")
-                    add_log(user_id, f"Refreshing page for stability after {cycle_count} cycles.")
+                # Note: Now replaced by the global memory restart, but we keep a lighter page reload here if needed.
+                if cycle_count > 0 and cycle_count % 3 == 0:
+                    logger.info(f"[User {user_id}] Refreshing page for stability after 3 loops.")
+                    add_log(user_id, f"Refreshing page for stability.")
                     try:
-                        page.goto("https://next.palladium.expert/pages/campaign-page")
+                        page.goto("https://next.palladium.expert/pages/campaign-page", timeout=30000)
                         page.wait_for_load_state("domcontentloaded")
                         page.wait_for_timeout(3000)
                         logger.info(f"[User {user_id}] Page reset completed successfully.")
-                        cycle_count = 0  # Reset counter
                     except Exception as reset_err:
                         logger.warning(f"[User {user_id}] Navigation reset failed: {reset_err}. Attempting reload...")
                         try:
                             page.reload(wait_until="domcontentloaded")
                             page.wait_for_timeout(3000)
                             logger.info(f"[User {user_id}] Page reload completed successfully.")
-                            cycle_count = 0  # Reset counter
                         except Exception as reload_err:
                             logger.error(f"[User {user_id}] Page reset entirely failed: {reload_err}")
+                
+                # Cooldown Between Cycles
+                time.sleep(2)
     
             except Exception as e:
-                error_message = str(e) 
+                error_message = str(e).lower() 
  
                 is_browser_crash = ( 
-                    "Target page" in error_message or 
+                    "target page" in error_message or 
                     "browser has been closed" in error_message or 
                     "context has been closed" in error_message 
                 ) 
                 
                 is_timeout = ( 
-                    "timeout" in error_message.lower() 
+                    "timeout" in error_message 
                 ) 
                 
                 is_network_issue = ( 
-                    "ERR_CONNECTION" in error_message or 
-                    "net::" in error_message 
+                    "net::" in error_message or 
+                    "err_connection" in error_message 
+                ) 
+                
+                is_selector_issue = ( 
+                    "waiting for selector" in error_message 
                 ) 
 
                 if is_browser_crash: 
                     logger.warning(f"[User {user_id}] Browser crashed, restarting...") 
                 
-                    add_log(user_id, "Browser crashed, restarting session...") 
+                    add_log(user_id, "⚠️ Browser crashed → restarting...") 
                 
                     try: 
                         if page: 
@@ -787,17 +907,55 @@ _Screenshot attached for debugging._"""
                     playwright, browser, page = launch_browser(user_id=user_id)
                     context = page.context
                 
+                    user["retry_map"].clear() 
                     error_count = 0 
+                    cycle_count = 0
                     continue 
 
-                elif is_timeout or is_network_issue: 
+                elif is_timeout or is_network_issue or is_selector_issue: 
                     logger.warning(f"[User {user_id}] Temporary issue, retrying...") 
                 
-                    add_log(user_id, "Temporary issue, retrying same link...") 
+                    add_log(user_id, "⚠️ Temporary issue → retrying same link") 
+                    
+                    user = user_status.get(str(user_id), {})
+                    if not user.get("temp_notified"): 
+                        notify_user(
+                            user_id, 
+                            "⚠️ Temporary issue detected\nRetrying automatically..." 
+                        ) 
+                        user["temp_notified"] = True 
                 
-                    time.sleep(3) 
+                    retry_map = user.get("retry_map", {}) 
+                    retry_map[current_link] = retry_map.get(current_link, 0) + 1 
                 
-                    continue 
+                    if retry_map[current_link] < 2: 
+                        time.sleep(3) 
+                        continue 
+
+                # If it gets here, it's a real failure or exceeded temporary retries
+                add_log(user_id, f"❌ Confirmed failure → {current_link}") 
+                
+                # Double-check link validity before removing
+                try: 
+                    response = page.goto(current_link, timeout=10000) 
+                
+                    if response and response.status < 400: 
+                        add_log(user_id, "Link still valid → skipping removal") 
+                        continue 
+                except: 
+                    pass 
+                
+                if current_link in user["active_links"]: 
+                    user["active_links"].remove(current_link) 
+                
+                if current_link not in user["flagged_links"]: 
+                    user["flagged_links"].append(current_link) 
+                
+                user.get("retry_map", {}).pop(current_link, None) 
+                
+                # Move to next link
+                user_current_index = (user_current_index + 1) % len(active_links) if active_links else 0
+                update_user(user_id, {"current_index": user_current_index})
 
                 from telegram_bot.utils.error_tracker import save_error 
                 from telegram_bot.utils.error_classifier_simple import classify_error as classify_error_simple
@@ -855,6 +1013,14 @@ _Screenshot attached for debugging._"""
 
                 error_msg = error_message
                 error_count += 1
+                
+                MAX_GLOBAL_ERRORS = 10 
+ 
+                if error_count > MAX_GLOBAL_ERRORS: 
+                    add_log(user_id, "Too many errors → cooling down...") 
+                    time.sleep(10) 
+                    error_count = 0 
+                
                 logger.error(f"[User {user_id}] Recoverable error during automation cycle: {e}. Error count: {error_count}/{MAX_ERRORS}")
                 add_log(user_id, f"Recoverable error: {error_msg} (Count: {error_count})")
                 
@@ -982,43 +1148,26 @@ _Screenshot attached for debugging._"""
                 logger.info(f"[User {user_id}] Waiting {int(sleep_time)} seconds before next cycle...")
                 wait_with_interrupt(user_id, int(sleep_time))
 
+    except Exception as fatal_e:
+        logger.error(f"[User {user_id}] Fatal automation loop error: {fatal_e}")
+        add_log(user_id, f"Fatal error: {str(fatal_e)}")
     finally:
-        # Clean Shutdown for this specific campaign handler
-        logger.info(f"[User {user_id}] Automation loop terminated. Cleaning up...")
-        add_log(user_id, "Automation loop terminated. Cleaning up...")
-        
-        # Cleanup on Crash / Exit
-        str_uid = str(user_id)
-        if str_uid in active_threads:
-            del active_threads[str_uid]
-        
-        release_campaign(campaign_name)
-        
-        # Ensure disk state matches memory state on crash/stop
-        from telegram_bot.state_manager import load_users, save_users
-        users_data = load_users()
-        str_user_id = str(user_id)
-        if str_user_id in users_data:
-            users_data[str_user_id]["running"] = False
-            # Do NOT modify state here
-            save_users(users_data)
-        
-        # Robust Cleanup of Playwright Objects
+        logger.info(f"[User {user_id}] Automation loop exiting. Cleaning up.")
+        # Ensure cleanup is absolute
         try:
             if page: page.close()
-        except: pass
-        
-        try:
             if context: context.close()
-        except: pass
-            
-        try:
             if browser: browser.close()
-        except: pass
-            
-        try:
             if playwright: playwright.stop()
-        except: pass
-                
-        if user_id in user_status:
-            user_status[user_id]["running"] = False
+        except:
+            pass
+            
+        str_user_id = str(user_id)
+        user_flags[str_user_id] = False
+        if str_user_id in user_status:
+            user_status[str_user_id]["running"] = False
+            
+        if str_user_id in active_threads:
+            del active_threads[str_user_id]
+            
+        release_campaign(campaign_name)
