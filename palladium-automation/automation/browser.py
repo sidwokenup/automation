@@ -707,6 +707,53 @@ def open_campaign(page, campaign_name, user_id=None):
         logger.error(f"Error waiting for campaign settings page: {e}")
         raise
 
+def validate_link_update(page):
+    try: 
+        # Wait for UI response 
+        time.sleep(3) 
+
+        # 1. Check for error messages (FAIL CASE) 
+        error_selectors = [ 
+            "text=invalid", 
+            "text=error", 
+            "text=not allowed", 
+            "text=failed", 
+            "text=rejected" 
+        ] 
+
+        for selector in error_selectors: 
+            if page.locator(selector).count() > 0 and page.locator(selector).is_visible(): 
+                return "FAIL" 
+
+        # 2. Check for success signals (SUCCESS CASE) 
+        success_selectors = [ 
+            "text=updated", 
+            "text=success", 
+            "text=saved", 
+            "text=link updated" 
+        ] 
+
+        for selector in success_selectors: 
+            if page.locator(selector).count() > 0 and page.locator(selector).is_visible(): 
+                return "SUCCESS" 
+
+        # 3. Check if input field value changed (STRONG SIGNAL) 
+        input_locators = page.locator("input[placeholder*='http']")
+        if input_locators.count() == 0:
+            input_locators = page.locator("input")
+            
+        if input_locators.count() > 0:
+            input_value = input_locators.first.input_value() 
+            if input_value and "http" in input_value: 
+                return "SUCCESS" 
+
+        # 4. Unknown state → retry (NOT FAIL) 
+        return "UNKNOWN" 
+
+    except Exception as e: 
+        logger.error(f"Validation error: {e}") 
+        return "UNKNOWN" 
+
 def update_target_link(page, new_link, user_id=None):
     """
     Updates the target link in the campaign settings page using robust selectors and strict value verification.
@@ -834,11 +881,15 @@ def update_target_link(page, new_link, user_id=None):
             save_button.click()
             page.wait_for_timeout(2000)
             
-        # 5. Safe Success Confirmation
-        error_visible = page.locator("text=error").is_visible() 
+        # 5. Advanced Link Validation
+        result = validate_link_update(page)
+        logger.info(f"Validation result: {result}")
         
-        if error_visible: 
-            raise Exception("Error message detected after updating link") 
+        if result == "FAIL":
+            raise Exception("Link rejected by the platform")
+            
+        if result == "UNKNOWN":
+            logger.warning("Uncertain state → assuming success for now but monitoring")
 
         logger.info("Link updated successfully.")
         return True

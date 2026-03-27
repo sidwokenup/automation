@@ -366,26 +366,36 @@ async def why_stopped_command(update: Update, context: ContextTypes.DEFAULT_TYPE
 
 async def links_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)
-    user = state_manager.get_user(user_id)
+    user_state = state_manager.get_user(user_id)
 
-    # Note: In phase 2/3, we stored links via API. 
-    # But as requested by prompt to fetch from user_data, we'll try API first, then fallback to user_data
-    from telegram_bot.utils.link_api import get_active_links
-    links = get_active_links(user_id)
+    links_data = user_state.get("links_data", [])
     
-    if not links:
-        links = user.get("active_links", [])
-
-    if not links:
-        await update.message.reply_text("📦 No active links found.")
+    if not links_data:
+        await update.message.reply_text("📦 No links configured or data missing.")
         return
 
-    msg = "📦 Active Links:\n\n"
-
-    for i, link in enumerate(links, 1):
-        msg += f"{i}. {link}\n"
-
-    await update.message.reply_text(msg)
+    active = [] 
+    failed = [] 
+ 
+    for link in links_data: 
+        if link["status"] == "active": 
+            active.append(link) 
+        else: 
+            failed.append(link) 
+ 
+    message = "🔗 Link Status:\n\n" 
+ 
+    message += "🟢 Active Links:\n" 
+    for l in active: 
+        message += f"- {l['url']} (✔ {l['success_count']})\n" 
+ 
+    message += "\n🔴 Failed Links:\n" 
+    for l in failed: 
+        message += f"- {l['url']} (❌ {l['fail_count']})\n" 
+ 
+    message += f"\n📍 Current Index: {user_state.get('current_index', 0)}" 
+ 
+    await update.message.reply_text(message)
 
 async def flagged_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     user_id = str(update.effective_user.id)

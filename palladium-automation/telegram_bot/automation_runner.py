@@ -133,6 +133,9 @@ def notify_user(user_id, message):
 
 # Removed send_error_alert as it is no longer needed (async wrapper)
 
+def get_next_index(current_index, total_links): 
+    return (current_index + 1) % total_links if total_links > 0 else 0
+
 def should_send_error(user_id):
     """Checks if an error alert should be sent based on cooldown."""
     now = time.time()
@@ -551,12 +554,25 @@ def automation_loop(user_id, config, logger):
             retry_map = user.get("retry_map", {})
             link_stats = user.get("link_stats", {"total_rotations": 0, "failures": 0})
             
+            # F2 Initialize links_data
+            links_data = user.get("links_data", [])
+            if not links_data and active_links:
+                for link in active_links:
+                    links_data.append({
+                        "url": link,
+                        "status": "active",
+                        "success_count": 0,
+                        "fail_count": 0,
+                        "last_checked": None
+                    })
+            
             # Save initialized structure back just in case
             update_user(user_id, {
                 "active_links": active_links,
                 "flagged_links": flagged_links,
                 "retry_map": retry_map,
-                "link_stats": link_stats
+                "link_stats": link_stats,
+                "links_data": links_data
             })
 
             # Get Next Link (FIX CORE BUG)
@@ -574,7 +590,7 @@ Please add new links using /setup to continue automation.
                     send_telegram_message(app_instance, user_id, message) 
 
                 stop_automation(user_id) 
-                break
+                return
                 
             user_current_index = user_current_index % len(active_links)
             current_link = active_links[user_current_index]
@@ -589,7 +605,7 @@ Please add new links using /setup to continue automation.
             last_link = user.get("last_link")
             if current_link == last_link:
                 add_log(user_id, "Skipping duplicate link cycle")
-                update_user(user_id, {"current_index": user_current_index + 1})
+                update_user(user_id, {"current_index": get_next_index(user_current_index, len(active_links))})
                 continue
                 
             update_user(user_id, {"last_link": current_link})
@@ -783,19 +799,18 @@ _Screenshot attached for debugging._"""
                     raise Exception(f"Link Validation Failed for {current_link}")
                     
                 add_log(user_id, f"Trying link: {current_link}") 
-                success = update_target_link(page, current_link, user_id=user_id)
                 
-                # Fetch value explicitly for logging since the original input_value check was moved to browser.py
-                # This ensures we don't break the log requirements in the prompt
-                try:
-                    value = page.input_value("input[placeholder*='http']")
-                except:
-                    value = "unknown"
-                add_log(user_id, f"Input field value after paste: {value}") 
+                # Update link and validate the result directly
+                from automation.browser import validate_link_update
                 
-                if success: 
+                update_target_link(page, current_link, user_id=user_id)
+                result = validate_link_update(page)
+                
+                add_log(user_id, f"Validation result: {result}")
+                
+                if result == "SUCCESS": 
                     logger.info(f"[User {user_id}] Updated link successfully: {current_link}")
-                    add_log(user_id, f"Link updated successfully")
+                    add_log(user_id, f"✅ Link updated successfully")
                     
                     error_count = 0 
                     
@@ -803,9 +818,116 @@ _Screenshot attached for debugging._"""
                     link_stats["total_rotations"] = link_stats.get("total_rotations", 0) + 1
                     
                     # Move to next link 
-                    user_current_index = (user_current_index + 1) % len(active_links) if active_links else 0
-                else: 
-                    raise Exception("Update failed") 
+                    user_current_index = get_next_index(user_current_index, len(active_links))
+                    add_log(user_id, f"Retry count reset")
+                    add_log(user_id, f"Moving to next link index {user_current_index}")
+                    
+                    # F2 Update On Success
+                    links_data = user_data.get("links_data", [])
+                    for link_obj in links_data:
+                        if link_obj.get("url") == current_link:
+                            link_obj["success_count"] = link_obj.get("success_count", 0) + 1
+                            link_obj["last_checked"] = time.time()
+                            break
+                    update_user(user_id, {"links_data": links_data})
+                
+                elif result == "FAIL":
+                    logger.warning(f"[User {user_id}] Link rejected by platform: {current_link}")
+                    add_log(user_id, "❌ Link rejected (confirmed)")
+                    
+                    from telegram_bot.state_manager import get_user, update_user
+                    user_data = get_user(user_id)
+                    
+                    # F2 Update On Fail
+                    links_data = user_data.get("links_data", [])
+                    for link_obj in links_data:
+                        if link_obj.get("url") == current_link:
+                            link_obj["fail_count"] = link_obj.get("fail_count", 0) + 1
+                            link_obj["status"] = "failed"
+                            link_obj["last_checked"] = time.time()
+                            break
+                    
+                    active_links = user_data.get("active_links", [])
+                    if current_link in active_links:
+                        active_links.remove(current_link)
+                    
+                    flagged_links = user_data.get("flagged_links", [])
+                    if current_link not in flagged_links:
+                        flagged_links.append(current_link)
+                        
+                    retry_map.pop(current_link, None)
+                    link_stats["failures"] = link_stats.get("failures", 0) + 1
+                    
+                    update_user(user_id, {
+                        "active_links": active_links,
+                        "flagged_links": flagged_links,
+                        "retry_map": retry_map,
+                        "link_stats": link_stats,
+                        "links_data": links_data
+                    })
+                    
+                    notify_user( 
+                        user_id, 
+                        f"❌ Link flagged and removed:\n{current_link}" 
+                    ) 
+                    
+                    user_current_index = get_next_index(user_current_index, len(active_links))
+                    add_log(user_id, f"Retry count reset")
+                    add_log(user_id, f"Moving to next link index {user_current_index}")
+                    
+                elif result == "UNKNOWN":
+                    retry_map[current_link] = retry_map.get(current_link, 0) + 1
+                    
+                    # Store updated retry map immediately
+                    update_user(user_id, {"retry_map": retry_map})
+                    
+                    add_log(user_id, f"⚠️ Unknown state. Retry attempt {retry_map[current_link]}/2")
+                    
+                    if retry_map[current_link] <= 2:
+                        add_log(user_id, "🔁 Retrying SAME link (no index change)")
+                        continue
+                    else:
+                        add_log(user_id, "❌ Max retries reached → treating as FAIL")
+                        
+                        from telegram_bot.state_manager import get_user, update_user
+                        user_data = get_user(user_id)
+                        
+                        # F2 Update On Fail
+                        links_data = user_data.get("links_data", [])
+                        for link_obj in links_data:
+                            if link_obj.get("url") == current_link:
+                                link_obj["fail_count"] = link_obj.get("fail_count", 0) + 1
+                                link_obj["status"] = "failed"
+                                link_obj["last_checked"] = time.time()
+                                break
+                        
+                        active_links = user_data.get("active_links", [])
+                        if current_link in active_links:
+                            active_links.remove(current_link)
+                        
+                        flagged_links = user_data.get("flagged_links", [])
+                        if current_link not in flagged_links:
+                            flagged_links.append(current_link)
+                            
+                        retry_map.pop(current_link, None)
+                        link_stats["failures"] = link_stats.get("failures", 0) + 1
+                        
+                        update_user(user_id, {
+                            "active_links": active_links,
+                            "flagged_links": flagged_links,
+                            "retry_map": retry_map,
+                            "link_stats": link_stats,
+                            "links_data": links_data
+                        })
+                        
+                        notify_user( 
+                            user_id, 
+                            f"❌ Link flagged and removed:\n{current_link}" 
+                        ) 
+                        
+                        user_current_index = get_next_index(user_current_index, len(active_links))
+                        add_log(user_id, f"Retry count reset")
+                        add_log(user_id, f"Moving to next link index {user_current_index}")
                 
                 # Update status after success
                 if user_id in user_status:
@@ -925,10 +1047,11 @@ _Screenshot attached for debugging._"""
                         ) 
                         user["temp_notified"] = True 
                 
-                    retry_map = user.get("retry_map", {}) 
+                    retry_map = user_data.get("retry_map", {}) 
                     retry_map[current_link] = retry_map.get(current_link, 0) + 1 
                 
                     if retry_map[current_link] < 2: 
+                        add_log(user_id, f"Retry attempt {retry_map[current_link]}/2")
                         time.sleep(3) 
                         continue 
 
@@ -940,10 +1063,25 @@ _Screenshot attached for debugging._"""
                     response = page.goto(current_link, timeout=10000) 
                 
                     if response and response.status < 400: 
-                        add_log(user_id, "Link still valid → skipping removal") 
+                        add_log(user_id, "Link still valid → skipping removal")
+                        
+                        # Move to next link to avoid getting stuck
+                        user_current_index = get_next_index(user_current_index, len(active_links))
+                        update_user(user_id, {"current_index": user_current_index})
                         continue 
                 except: 
                     pass 
+                
+                # F2 Update On Fail
+                from telegram_bot.state_manager import get_user, update_user
+                user_data = get_user(user_id)
+                links_data = user_data.get("links_data", [])
+                for link_obj in links_data:
+                    if link_obj.get("url") == current_link:
+                        link_obj["fail_count"] = link_obj.get("fail_count", 0) + 1
+                        link_obj["status"] = "failed"
+                        link_obj["last_checked"] = time.time()
+                        break
                 
                 if current_link in user["active_links"]: 
                     user["active_links"].remove(current_link) 
@@ -953,8 +1091,15 @@ _Screenshot attached for debugging._"""
                 
                 user.get("retry_map", {}).pop(current_link, None) 
                 
+                update_user(user_id, {"links_data": links_data})
+                
+                notify_user( 
+                    user_id, 
+                    f"❌ Link flagged and removed:\n{current_link}" 
+                )
+                
                 # Move to next link
-                user_current_index = (user_current_index + 1) % len(active_links) if active_links else 0
+                user_current_index = get_next_index(user_current_index, len(active_links))
                 update_user(user_id, {"current_index": user_current_index})
 
                 from telegram_bot.utils.error_tracker import save_error 
@@ -1140,13 +1285,24 @@ _Screenshot attached for debugging._"""
                     pass
                 continue
 
-            # Wait before processing the next link
+                # Wait before processing the next link
             if user_flags.get(user_id, False):
                 # Calculate sleep time
+                interval_minutes = config.get("interval", 1)
+                interval_seconds = interval_minutes * 60
+                
                 elapsed = time.time() - start_time
-                sleep_time = max(0, (interval_minutes * 60) - elapsed)
-                logger.info(f"[User {user_id}] Waiting {int(sleep_time)} seconds before next cycle...")
-                wait_with_interrupt(user_id, int(sleep_time))
+                remaining = interval_seconds - elapsed
+                
+                add_log(user_id, f"Cycle duration: {elapsed:.2f} sec")
+                add_log(user_id, f"Interval: {interval_seconds} sec")
+                
+                if remaining > 0:
+                    logger.info(f"[User {user_id}] Waiting {int(remaining)} seconds before next cycle...")
+                    add_log(user_id, f"⏳ Waiting {int(remaining)} seconds before next cycle")
+                    wait_with_interrupt(user_id, int(remaining))
+                else:
+                    add_log(user_id, "⚠️ Cycle took longer than interval, skipping wait")
 
     except Exception as fatal_e:
         logger.error(f"[User {user_id}] Fatal automation loop error: {fatal_e}")
