@@ -232,12 +232,6 @@ def launch_browser(user_id=None):
         """)
         logger.info("Creating new page...")
         
-        try:
-            if browser:
-                browser.close()
-        except:
-            pass
-            
         page = context.new_page()
         if not stealth_sync: 
             print("[WARNING] playwright_stealth not available, running without stealth") 
@@ -822,11 +816,13 @@ def update_target_link(page, new_link, user_id=None):
                 
             # 8. Fail safe for multiple inputs
             if len(valid_inputs) > 3 and len(http_inputs) != 1:
-                raise Exception("INPUT_FIELD_NOT_RELIABLE")
+                logger.warning("Input field detection ambiguous (INPUT_FIELD_NOT_RELIABLE). Falling back to first visible input.")
+                return valid_inputs[0], len(valid_inputs)
                 
             # 4. If still ambiguous
             if len(current_pool) > 1:
-                raise Exception("AMBIGUOUS_INPUT_FIELD")
+                logger.warning("Input field detection ambiguous (AMBIGUOUS_INPUT_FIELD). Falling back to first visible input.")
+                return current_pool[0], len(valid_inputs)
                 
             return current_pool[0], len(valid_inputs)
 
@@ -976,3 +972,57 @@ def update_target_link(page, new_link, user_id=None):
     except Exception as e:
         logger.error(f"Error updating target link: {e}")
         raise
+
+def validate_external_link(page, url):
+    """
+    Validates an external link by opening it in a new tab and performing multi-layer checks.
+    Reuses a validator_tab to optimize performance.
+    """
+    # logger.info(f"[LINK CHECK] URL: {url}")
+    new_page = None
+    try:
+        if not hasattr(page.context, "validator_tab"):
+            page.context.validator_tab = page.context.new_page()
+        
+        new_page = page.context.validator_tab
+        
+        import time, random
+        time.sleep(random.uniform(1.5, 3.0))
+        
+        response = new_page.goto(url, timeout=15000)
+        
+        # A. Check HTTP status
+        if response and response.status >= 400:
+            # logger.warning(f"HTTP Status >= 400: {response.status}")
+            return "INVALID"
+            
+        # Wait a bit for page to render
+        new_page.wait_for_load_state("domcontentloaded", timeout=5000)
+        
+        # B. Check page content for keywords
+        body_text = new_page.locator("body").inner_text()
+        content = body_text.lower()
+        error_keywords = [
+            "page not found",
+            "404",
+            "not found",
+            "unavailable",
+            "feature is disabled"
+        ]
+        
+        for keyword in error_keywords:
+            if keyword in content:
+                # logger.warning(f"Found error keyword: {keyword}")
+                return "INVALID"
+                
+        # C. Check empty or blank page
+        if len(body_text.strip()) < 50:
+            # logger.warning("Page body text length < 50")
+            return "INVALID"
+            
+        return "VALID"
+        
+    except Exception as e:
+        # logger.warning(f"Exception during external link validation: {e}")
+        return "INVALID"
+    # Do not close the reusable tab here
