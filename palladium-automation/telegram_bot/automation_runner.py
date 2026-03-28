@@ -339,15 +339,6 @@ def process_link_failure(page, user_id, current_link, reason):
     str_user_id = str(user_id)
     add_log(str_user_id, f"❌ Link failed: {reason}")
     send_error_with_screenshot(page, str_user_id, f"❌ Automation Error: {reason}")
-    
-    # Validation in NEW TAB
-    link_is_valid = False
-    from automation.browser import validate_external_link 
-    status = validate_external_link(page, current_link) 
-    
-    if status == "VALID": 
-        add_log(str_user_id, "Link still valid → skipping removal") 
-        return
 
     user = get_user(str_user_id)
     handle_link_failure(str_user_id, current_link, user, add_log, notify_user)
@@ -656,12 +647,6 @@ def automation_loop(user_id, config, logger):
 
     try:
         while user_flags.get(str_user_id, False):
-            # Keep state alive explicitly in disk to prevent /users drift
-            from telegram_bot.state_manager import load_users, save_users
-            users_data = load_users()
-            str_uid = str(user_id)
-            if str_uid not in users_data or not users_data[str_uid].get("running"):
-                break
 
             # Periodic Browser Restart (Memory Cleanup)
             MAX_CYCLES_BEFORE_RESTART = 20
@@ -863,6 +848,14 @@ _Screenshot attached for debugging._"""
                 add_log(str_user_id, f"[LINK STATUS] {status}")
                 
                 if status == "INVALID":
+                    add_log(str_user_id, "⚠️ Validation failed → retrying once")
+
+                    retry_status = validate_external_link(page, current_link)
+
+                    if retry_status == "VALID":
+                        add_log(str_user_id, "Recovered on retry → skipping flag")
+                        continue
+                        
                     retry_map = user.get("retry_map", {})
                     retry_map[current_link] = retry_map.get(current_link, 0) + 1
                     update_user(str_user_id, {"retry_map": retry_map})
