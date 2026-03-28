@@ -341,7 +341,24 @@ def handle_link_failure(user_id, current_link, user_data, add_log, notify_user, 
         })
     
     msg = f"❌ Link flagged and removed:\n{current_link}"
+    
+    # Try to open the bad link in a temporary tab just to capture its error screen
+    screenshot_page = None
     if page:
+        try:
+            screenshot_page = page.context.new_page()
+            screenshot_page.goto(current_link, timeout=10000)
+            screenshot_page.wait_for_timeout(2000) # Let error render
+        except Exception:
+            pass # If it times out or fails entirely, we still use the blank/error page for screenshot
+
+    if screenshot_page:
+        send_error_with_screenshot(screenshot_page, str_user_id, msg)
+        try:
+            screenshot_page.close()
+        except:
+            pass
+    elif page:
         send_error_with_screenshot(page, str_user_id, msg)
     else:
         notify_user(str_user_id, msg)
