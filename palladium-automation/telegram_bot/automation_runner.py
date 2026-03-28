@@ -6,6 +6,8 @@ import random
 import requests
 from automation.browser import launch_browser, login, navigate_to_campaigns, open_campaign, update_target_link, ensure_logged_in, ensure_campaign_page
 
+logger = logging.getLogger('palladium_automation.runner')
+
 # Create a lock for critical user state updates (like active_links/flagged_links)
 user_state_lock = threading.Lock()
 
@@ -729,9 +731,10 @@ def automation_loop(user_id, config, logger):
             # Prevent Same Link Loop
             last_link = user.get("last_link")
             if current_link == last_link and len(active_links) > 1:
-                add_log(str_user_id, "⚠️ Duplicate link detected, skipping cycle")
-                move_to_next_link(str_user_id)
-                continue
+                # add_log(str_user_id, "⚠️ Duplicate link detected, skipping cycle")
+                # move_to_next_link(str_user_id)
+                # continue
+                pass
                 
             update_user(str_user_id, {"last_link": current_link})
             
