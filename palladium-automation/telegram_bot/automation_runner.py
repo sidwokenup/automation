@@ -159,19 +159,26 @@ def is_link_error(error_msg):
     ] 
     return any(e in error_msg.lower() for e in LINK_ERRORS) 
 
-def move_to_next_link(user_id):
-    str_user_id = str(user_id)
-    user = get_user(str_user_id)
-    active_links = user.get("active_links", [])
-    current_index = user.get("current_index", 0)
+def move_to_next_link(user_id): 
+    str_user_id = str(user_id) 
 
-    if len(active_links) == 0:
-        return
+    user = get_user(str_user_id) 
 
-    next_index = get_next_index(current_index, len(active_links))
-    update_user(str_user_id, {"current_index": next_index})
+    active_links = user.get("active_links", []) 
+    current_index = user.get("current_index", 0) 
 
-    add_log(str_user_id, f"➡️ Moving to next link (Index {next_index})")
+    if not active_links: 
+        return 
+
+    # Move to next index 
+    new_index = (current_index + 1) % len(active_links) 
+
+    update_user(str_user_id, { 
+        "current_index": new_index 
+    }) 
+
+    # Debug log 
+    add_log(str_user_id, f"➡️ Moved to next link index: {new_index}")
 
 def get_next_index(current_index, total_links): 
     return (current_index + 1) % total_links if total_links > 0 else 0
@@ -701,7 +708,9 @@ def automation_loop(user_id, config, logger):
                 return
                 
             user_current_index = user_current_index % len(active_links)
-            current_link = active_links[user_current_index]
+            current_index = user.get("current_index", 0) 
+            active_links = user.get("active_links", []) 
+            current_link = active_links[current_index]
             
             # Update user state with selected link
             update_user(str_user_id, {
@@ -731,8 +740,12 @@ def automation_loop(user_id, config, logger):
             
             # Update status
             if str_user_id in user_status:
+                current_index = user.get("current_index", 0) 
+                active_links = user.get("active_links", []) 
+                current_link = active_links[current_index] if active_links else "N/A" 
+
                 user_status[str_user_id]["current_link"] = current_link
-                user_status[str_user_id]["current_index"] = user_current_index + 1
+                user_status[str_user_id]["current_index"] = current_index + 1
 
             cycle_start_time = time.time()
             try:
@@ -901,6 +914,12 @@ _Screenshot attached for debugging._"""
                 
                 # Move to next link 
                 move_to_next_link(str_user_id)
+                user = get_user(str_user_id)
+                
+                new_index = user.get("current_index", 0) 
+                new_link = user.get("active_links", [])[new_index] 
+                
+                add_log(str_user_id, f"🔁 Link switched → {new_link}")
                 
                 # F2 Update On Success
                 links_data = user.get("links_data", [])
