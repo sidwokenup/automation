@@ -178,6 +178,7 @@ def move_to_next_link(user_id):
     }) 
 
     # Debug log 
+    logger.info(f"[User {str_user_id}] ➡️ Moved to next link index: {new_index}")
     add_log(str_user_id, f"➡️ Moved to next link index: {new_index}")
 
 def get_next_index(current_index, total_links): 
@@ -349,7 +350,8 @@ def process_link_failure(page, user_id, current_link, reason):
 
     user = get_user(str_user_id)
     handle_link_failure(str_user_id, current_link, user, add_log, notify_user)
-    move_to_next_link(str_user_id)
+    # Do NOT call move_to_next_link here! 
+    # Removing the item from the list automatically shifts the next item to the current_index.
 
 
 def start_automation(user_id, config, logger, bot_instance=None):
@@ -389,12 +391,16 @@ def start_automation(user_id, config, logger, bot_instance=None):
         return False
 
     # Reset State on /run (IMPORTANT)
+    links = config.get("links", [])
     user_data[str_user_id]["current_index"] = 0
     user_data[str_user_id]["retry_map"] = {}
     user_data[str_user_id]["link_stats"] = {
         "total_rotations": 0,
         "failures": 0
     }
+    user_data[str_user_id]["active_links"] = links.copy()
+    user_data[str_user_id]["flagged_links"] = []
+    user_data[str_user_id]["links_data"] = []
 
     # Set flag to True
     user_flags[str_user_id] = True
@@ -740,7 +746,7 @@ def automation_loop(user_id, config, logger):
             # Update status
             if str_user_id in user_status:
                 user_status[str_user_id]["current_link"] = current_link
-                user_status[str_user_id]["current_index"] = current_index + 1
+                user_status[str_user_id]["current_index"] = current_index
 
             cycle_start_time = time.time()
             try:
@@ -872,7 +878,7 @@ _Screenshot attached for debugging._"""
                         logger.warning(f"[User {str_user_id}] LINK_INVALID → flag immediately: {current_link}")
                         add_log(str_user_id, f"[FLAGGED] Link removed: {current_link}")
                         mark_link_as_flagged(str_user_id, current_link)
-                        move_to_next_link(str_user_id)
+                        # Do NOT call move_to_next_link here. Removing the item shifts the array.
                     else:
                         add_log(str_user_id, "Retrying before flagging link...")
                     
@@ -912,8 +918,9 @@ _Screenshot attached for debugging._"""
                 user = get_user(str_user_id)
                 
                 new_index = user.get("current_index", 0) 
-                new_link = user.get("active_links", [])[new_index] 
+                new_link = user.get("active_links", [])[new_index] if user.get("active_links") else "N/A"
                 
+                logger.info(f"[User {str_user_id}] 🔁 Link switched → {new_link}")
                 add_log(str_user_id, f"🔁 Link switched → {new_link}")
                 
                 # F2 Update On Success

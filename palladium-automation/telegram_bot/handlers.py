@@ -81,12 +81,12 @@ def is_user_fully_configured(user_data: dict) -> bool:
 def calculate_progress(user_data):
     total = user_data.get("total_links", 0)
     if total == 0:
-        links = user_data.get("links", [])
+        links = user_data.get("active_links") or user_data.get("links", [])
         total = len(links) if isinstance(links, list) else 0
     current = user_data.get("current_index", 0)
     if total == 0:
         return 0
-    return int((current / total) * 100)
+    return int(((current + 1) / total) * 100)
 
 def get_current_link(user_data):
     user_id = str(user_data.get("user_id", ""))
@@ -186,7 +186,7 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 `{current_link}`
 
 📦 Total Links: {total_links}
-🔁 Current Index: {current_index}
+🔁 Current Index: {current_index + 1}
 
 ⏱️ Interval: {interval} min
 ⌛ ETA: {eta}
@@ -212,14 +212,24 @@ async def progress_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         
     progress = calculate_progress(user_data)
     current_index = user_data.get("current_index", 0)
+    
+    # Try to get live index
+    try:
+        from telegram_bot.automation_runner import user_status
+        live_status = user_status.get(str(user_id), {})
+        if "current_index" in live_status:
+            current_index = live_status["current_index"]
+    except ImportError:
+        pass
+        
     total_links = user_data.get("total_links", 0)
     if total_links == 0:
-         links = user_data.get("links", [])
+         links = user_data.get("active_links") or user_data.get("links", [])
          total_links = len(links) if isinstance(links, list) else 0
          
     status_emoji = "🟢 RUNNING" if running else "🟡 STOPPED"
     
-    msg = f"📊 *Progress*: {progress}% ({current_index}/{total_links}) | {status_emoji}"
+    msg = f"📊 *Progress*: {progress}% ({current_index + 1}/{total_links}) | {status_emoji}"
     await update.message.reply_text(msg, parse_mode='Markdown')
 
 async def logs_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
@@ -424,7 +434,7 @@ async def links_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     for l in failed: 
         message += f"- {l['url']} (❌ {l['fail_count']})\n" 
  
-    message += f"\n📍 Current Index: {user_state.get('current_index', 0)}" 
+    message += f"\n📍 Current Index: {user_state.get('current_index', 0) + 1}" 
  
     await update.message.reply_text(message)
 
@@ -453,7 +463,9 @@ async def current_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from telegram_bot.automation_runner import user_status
     live_status = user_status.get(user_id, {})
 
-    index = live_status.get("current_index") or user.get("current_index", 0)
+    index = live_status.get("current_index")
+    if index is None:
+        index = user.get("current_index", 0)
     
     active_links = user.get("active_links", [])
     link = active_links[index] if active_links and index < len(active_links) else (live_status.get("current_link") or user.get("current_link"))
@@ -462,7 +474,7 @@ async def current_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("🔗 No active link currently.")
         return
 
-    msg = f"🔗 Current Link:\n{link}\n\n📍 Index: {index}"
+    msg = f"🔗 Current Link:\n{link}\n\n📍 Index: {index + 1}"
 
     await update.message.reply_text(msg)
 
@@ -695,7 +707,13 @@ async def handle_message(update: Update, context: ContextTypes.DEFAULT_TYPE):
         if not links:
             await update.message.reply_text("❌ At least 1 valid link is required.\nEnter links (comma-separated):")
             return
-        state_manager.update_user(user_id, {"links": links, "state": state_manager.WAITING_INTERVAL})
+        state_manager.update_user(user_id, {
+            "links": links, 
+            "active_links": links.copy(),
+            "flagged_links": [],
+            "links_data": [],
+            "state": state_manager.WAITING_INTERVAL
+        })
         
         from telegram_bot.utils.link_api import add_links 
         try: 
