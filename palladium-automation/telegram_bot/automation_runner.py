@@ -707,15 +707,17 @@ def automation_loop(user_id, config, logger):
                 stop_automation(str_user_id)
                 return
                 
-            user_current_index = user_current_index % len(active_links)
             current_index = user.get("current_index", 0) 
             active_links = user.get("active_links", []) 
+            
+            # Ensure current_index is within bounds in case active_links length changed
+            current_index = current_index % len(active_links)
             current_link = active_links[current_index]
             
             # Update user state with selected link
             update_user(str_user_id, {
                 "current_link": current_link,
-                "current_index": user_current_index
+                "current_index": current_index
             })
 
             # Prevent Same Link Loop
@@ -723,9 +725,6 @@ def automation_loop(user_id, config, logger):
             if current_link == last_link and len(active_links) > 1:
                 add_log(str_user_id, "⚠️ Duplicate link detected, skipping cycle")
                 move_to_next_link(str_user_id)
-                user = get_user(str_user_id)
-                active_links = user.get("active_links", [])
-                user_current_index = user.get("current_index", 0)
                 continue
                 
             update_user(str_user_id, {"last_link": current_link})
@@ -740,17 +739,13 @@ def automation_loop(user_id, config, logger):
             
             # Update status
             if str_user_id in user_status:
-                current_index = user.get("current_index", 0) 
-                active_links = user.get("active_links", []) 
-                current_link = active_links[current_index] if active_links else "N/A" 
-
                 user_status[str_user_id]["current_link"] = current_link
                 user_status[str_user_id]["current_index"] = current_index + 1
 
             cycle_start_time = time.time()
             try:
-                logger.info(f"[User {str_user_id}] Starting cycle with link index {user_current_index}: {current_link}")
-                add_log(str_user_id, f"Cycle started [Index {user_current_index}]: {current_link}")
+                logger.info(f"[User {str_user_id}] Starting cycle with link index {current_index}: {current_link}")
+                add_log(str_user_id, f"Cycle started [Index {current_index}]: {current_link}")
                 
                 # Check for session expiry at the start of the loop
                 if "login" in page.url.lower():

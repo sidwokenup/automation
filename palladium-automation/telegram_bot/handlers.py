@@ -89,10 +89,26 @@ def calculate_progress(user_data):
     return int((current / total) * 100)
 
 def get_current_link(user_data):
-    links = user_data.get("links", [])
+    user_id = str(user_data.get("user_id", ""))
+    
+    # Try to get from running status first for most accurate live data
+    try:
+        from telegram_bot.automation_runner import user_status
+        live_status = user_status.get(user_id, {})
+        index = live_status.get("current_index")
+        if index is not None:
+            active_links = user_data.get("active_links", [])
+            if active_links and index < len(active_links):
+                return active_links[index]
+            if live_status.get("current_link"):
+                return live_status["current_link"]
+    except ImportError:
+        pass
+        
+    active_links = user_data.get("active_links", [])
     index = user_data.get("current_index", 0)
-    if isinstance(links, list) and 0 <= index < len(links):
-        return links[index]
+    if isinstance(active_links, list) and 0 <= index < len(active_links):
+        return active_links[index]
     return "N/A"
 
 def calculate_eta(user_data):
@@ -119,8 +135,11 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     """Handles the /status command."""
     user = update.effective_user
     user_id = user.id
+    str_user_id = str(user_id)
     
     user_data = state_manager.get_user(user_id)
+    # Ensure user_id is in user_data for get_current_link
+    user_data["user_id"] = str_user_id
     running = state_manager.is_running(user_id)
     
     logger.info(f"[User {user_id}] ({user.username}) issued /status command. Running={running}")
@@ -133,16 +152,28 @@ async def status_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
         await update.message.reply_text("⚠️ Setup incomplete. Continue setup.")
         return
         
+    # Get accurate live index
+    current_index = user_data.get("current_index", 0)
+    try:
+        from telegram_bot.automation_runner import user_status
+        live_status = user_status.get(str_user_id, {})
+        if "current_index" in live_status:
+            current_index = live_status["current_index"]
+    except ImportError:
+        pass
+        
+    # Inject current_index for calculation functions
+    user_data["current_index"] = current_index
+
     progress = calculate_progress(user_data)
     current_link = get_current_link(user_data)
     eta = format_eta(calculate_eta(user_data))
     
     total_links = user_data.get("total_links", 0)
     if total_links == 0:
-        links = user_data.get("links", [])
+        links = user_data.get("active_links") or user_data.get("links", [])
         total_links = len(links) if isinstance(links, list) else 0
         
-    current_index = user_data.get("current_index", 0)
     interval = user_data.get("interval", 10)
     campaign = user_data.get("campaign", "Unknown")
     
@@ -422,8 +453,10 @@ async def current_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
     from telegram_bot.automation_runner import user_status
     live_status = user_status.get(user_id, {})
 
-    link = live_status.get("current_link") or user.get("current_link")
     index = live_status.get("current_index") or user.get("current_index", 0)
+    
+    active_links = user.get("active_links", [])
+    link = active_links[index] if active_links and index < len(active_links) else (live_status.get("current_link") or user.get("current_link"))
 
     if not link:
         await update.message.reply_text("🔗 No active link currently.")
