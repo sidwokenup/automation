@@ -295,15 +295,16 @@ def send_error_with_screenshot(page, user_id, message):
             send_telegram_message(app_instance, user_id, message)
     return screenshot_path
 
-def mark_link_as_flagged(user_id, link):
+def mark_link_as_flagged(user_id, link, page=None):
     """
     Directly flags a link as invalid, removes it from rotation, and updates state.
+    If page is provided, it will send a screenshot notification instead of just text.
     """
     str_user_id = str(user_id)
     user_data = get_user(str_user_id)
-    handle_link_failure(str_user_id, link, user_data, add_log, notify_user)
+    handle_link_failure(str_user_id, link, user_data, add_log, notify_user, page=page)
 
-def handle_link_failure(user_id, current_link, user_data, add_log, notify_user):
+def handle_link_failure(user_id, current_link, user_data, add_log, notify_user, page=None):
     str_user_id = str(user_id)
     links_data = user_data.get("links_data", [])
     for link_obj in links_data:
@@ -339,10 +340,11 @@ def handle_link_failure(user_id, current_link, user_data, add_log, notify_user):
             "links_data": links_data
         })
     
-    notify_user(
-        str_user_id,
-        f"❌ Link flagged and removed:\n{current_link}"
-    )
+    msg = f"❌ Link flagged and removed:\n{current_link}"
+    if page:
+        send_error_with_screenshot(page, str_user_id, msg)
+    else:
+        notify_user(str_user_id, msg)
 
 def process_link_failure(page, user_id, current_link, reason):
     """Centralized handler for all link failures."""
@@ -351,7 +353,7 @@ def process_link_failure(page, user_id, current_link, reason):
     send_error_with_screenshot(page, str_user_id, f"❌ Automation Error: {reason}")
 
     user = get_user(str_user_id)
-    handle_link_failure(str_user_id, current_link, user, add_log, notify_user)
+    handle_link_failure(str_user_id, current_link, user, add_log, notify_user, page=page)
     # Do NOT call move_to_next_link here! 
     # Removing the item from the list automatically shifts the next item to the current_index.
 
@@ -880,7 +882,7 @@ _Screenshot attached for debugging._"""
                     if retry_map[current_link] >= 2:
                         logger.warning(f"[User {str_user_id}] LINK_INVALID → flag immediately: {current_link}")
                         add_log(str_user_id, f"[FLAGGED] Link removed: {current_link}")
-                        mark_link_as_flagged(str_user_id, current_link)
+                        mark_link_as_flagged(str_user_id, current_link, page=page)
                         # Do NOT call move_to_next_link here. Removing the item shifts the array.
                     else:
                         add_log(str_user_id, "Retrying before flagging link...")
