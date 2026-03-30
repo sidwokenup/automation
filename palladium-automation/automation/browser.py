@@ -977,14 +977,38 @@ def validate_external_link(page, url):
     try: 
         # ALWAYS create fresh tab (no reuse) 
         new_page = page.context.new_page() 
+        
+        # Track if the main request gets blocked
+        blocked = False
+        def handle_response(response):
+            nonlocal blocked
+            if response.url == url and response.status == 0:
+                blocked = True
 
-        response = new_page.goto(url, timeout=15000) 
+        new_page.on("response", handle_response)
+
+        try:
+            response = new_page.goto(url, timeout=15000) 
+        except Exception as e:
+            if "net::ERR_BLOCKED_BY_CLIENT" in str(e) or "net::ERR_ABORTED" in str(e) or "net::ERR_NAME_NOT_RESOLVED" in str(e) or blocked:
+                new_page.close()
+                return "INVALID"
+            # For timeouts, it might just be slow, don't immediately flag
+            new_page.close()
+            return "VALID" # Let the runner retry on timeout, don't flag
+
+        if blocked:
+            new_page.close()
+            return "INVALID"
 
         if response and response.status >= 400: 
             new_page.close() 
             return "INVALID" 
 
-        new_page.wait_for_load_state("domcontentloaded", timeout=5000) 
+        try:
+            new_page.wait_for_load_state("domcontentloaded", timeout=5000) 
+        except:
+            pass # Ignore timeout waiting for DOM, page might still be valid
 
         content = new_page.content().lower() 
 
@@ -993,7 +1017,9 @@ def validate_external_link(page, url):
             "404", 
             "not found", 
             "unavailable", 
-            "feature is disabled" 
+            "feature is disabled",
+            "dangerous site", # Chrome red screen
+            "deceptive site ahead"
         ] 
 
         for keyword in error_keywords: 
@@ -1001,9 +1027,8 @@ def validate_external_link(page, url):
                 new_page.close() 
                 return "INVALID" 
 
-        if len(content.strip()) < 50: 
-            new_page.close() 
-            return "INVALID" 
+        # REMOVED the < 50 characters check because some valid landing pages are blank/redirects
+        # Only flag if we explicitly detect an error or a block
 
         new_page.close() 
         return "VALID" 
@@ -1013,4 +1038,4 @@ def validate_external_link(page, url):
             new_page.close() 
         except: 
             pass 
-        return "INVALID"
+        return "VALID" # Return VALID on random exceptions to avoid false flagging. The automation loop will retry anyway if it fails to load later.

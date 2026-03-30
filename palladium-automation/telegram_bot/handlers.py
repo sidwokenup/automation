@@ -593,8 +593,11 @@ async def stop_command(update: Update, context: ContextTypes.DEFAULT_TYPE):
 
     # Check if running
     if not running:
-        await update.message.reply_text("⚠️ No automation is currently running")
-        return
+        from telegram_bot.automation_runner import active_threads
+        str_user_id = str(user_id)
+        if str_user_id not in active_threads:
+            await update.message.reply_text("⚠️ No automation is currently running")
+            return
 
     # Stop automation
     try:

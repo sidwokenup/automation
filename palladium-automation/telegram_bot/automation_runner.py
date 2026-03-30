@@ -97,19 +97,20 @@ def recover_running_automations():
                 logger.error(f"Recovery failed for {user_id}: {e}")
 
 # Campaign locks
-active_campaigns = set()
+active_campaigns = {} # Map campaign name to user_id
 campaign_lock = threading.Lock()
 
-def acquire_campaign(campaign):
+def acquire_campaign(campaign, user_id):
     with campaign_lock:
-        if campaign in active_campaigns:
+        if campaign in active_campaigns and active_campaigns[campaign] != str(user_id):
             return False
-        active_campaigns.add(campaign)
+        active_campaigns[campaign] = str(user_id)
         return True
 
-def release_campaign(campaign):
+def release_campaign(campaign, user_id):
     with campaign_lock:
-        active_campaigns.discard(campaign)
+        if campaign in active_campaigns and active_campaigns[campaign] == str(user_id):
+            del active_campaigns[campaign]
 
 # Global storage for tracking user threads and flags
 user_threads = {}
@@ -403,8 +404,8 @@ def start_automation(user_id, config, logger, bot_instance=None):
 
     # Prevent Duplicate Campaign Usage globally using centralized lock
     campaign_name = config.get("campaign")
-    if not acquire_campaign(campaign_name):
-        logger.error(f"Campaign {campaign_name} is already in use.")
+    if not acquire_campaign(campaign_name, str_user_id):
+        logger.error(f"Campaign {campaign_name} is already in use by another user.")
         raise Exception(f"Campaign '{campaign_name}' is already running. Please stop it first.")
     
     if user_flags.get(str_user_id, False):
@@ -515,7 +516,7 @@ def automation_loop(user_id, config, logger):
         user_flags[str_user_id] = False
         if str_user_id in user_status:
             user_status[str_user_id]["running"] = False
-        release_campaign(campaign_name)
+        release_campaign(campaign_name, str_user_id)
         return
 
     interval_minutes = config.get("interval", 10)
@@ -649,7 +650,7 @@ def automation_loop(user_id, config, logger):
         user_flags[str_user_id] = False
         if str_user_id in user_status:
             user_status[str_user_id]["running"] = False
-        release_campaign(campaign_name)
+        release_campaign(campaign_name, str_user_id)
         
         # Ensure disk state matches memory state on crash/stop
         from telegram_bot.state_manager import load_users, save_users
@@ -1140,11 +1141,21 @@ _Screenshot attached for debugging._"""
                     
                     app_instance = user_bots.get(str_user_id)
                     if app_instance and should_send_error(str_user_id):
-                        msg = get_user_friendly_message(error_type)
+                        msg = get_user_friendly_message(error_type, error_message)
                         send_telegram_message(app_instance, str_user_id, f"{msg}\n\nCooldown: {int(cooldown_minutes)} minutes.")
                         mark_error_sent(str_user_id)
                         
                     wait_with_interrupt(str_user_id, wait_seconds)
+                    
+                    # Force browser restart after rate limit to get a fresh session/proxy potentially
+                    try: 
+                        if page: page.close() 
+                        if context: context.close() 
+                        if browser: browser.close() 
+                    except: 
+                        pass
+                    playwright, browser, page = launch_browser(user_id=str_user_id)
+                    context = page.context
                     
                 # Handle RETRY and SELF_HEAL (Self-heal logic is in open_campaign, so we just retry here)
                 else:
@@ -1218,4 +1229,4 @@ _Screenshot attached for debugging._"""
         if str_user_id in active_threads:
             del active_threads[str_user_id]
             
-        release_campaign(campaign_name)
+        release_campaign(campaign_name, str_user_id)
