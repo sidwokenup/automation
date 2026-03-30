@@ -901,7 +901,24 @@ _Screenshot attached for debugging._"""
                         logger.warning(f"[User {str_user_id}] LINK_INVALID → flag immediately: {current_link}")
                         add_log(str_user_id, f"[FLAGGED] Link removed: {current_link}")
                         mark_link_as_flagged(str_user_id, current_link, page=page)
-                        # Do NOT call move_to_next_link here. Removing the item shifts the array.
+                        
+                        # Fetch user again to get the updated active_links and length after removal
+                        user = get_user(str_user_id)
+                        active_links = user.get("active_links", [])
+                        current_index = user.get("current_index", 0)
+                        
+                        # After removing an item, the list shrinks. 
+                        # If current_index is now out of bounds (e.g. we removed the last item),
+                        # wrap it around to 0. Otherwise, it naturally points to the next item.
+                        if active_links:
+                            new_index = current_index % len(active_links)
+                            if new_index != current_index:
+                                update_user(str_user_id, {"current_index": new_index})
+                                current_index = new_index
+                            
+                            new_link = active_links[current_index]
+                            logger.info(f"[User {str_user_id}] 🔁 Link switched (after flag) → {new_link}")
+                            add_log(str_user_id, f"🔁 Link switched → {new_link}")
                     else:
                         add_log(str_user_id, "Retrying before flagging link...")
                     
