@@ -472,7 +472,7 @@ def stop_automation(user_id):
     user_data = get_user(str_user_id)
     campaign_name = user_data.get("campaign")
     if campaign_name:
-        release_campaign(campaign_name)
+        release_campaign(campaign_name, str_user_id)
     
     # Update disk state regardless of current memory flags to ensure persistence
     from telegram_bot.state_manager import load_users, save_users
@@ -487,8 +487,8 @@ def stop_automation(user_id):
         if str_user_id in user_status:
             user_status[str_user_id]["running"] = False
         add_log(str_user_id, "Automation stopped by user")
-        return True
-    return False
+        
+    return True # Always return True to indicate command processed
 
 def get_status(user_id):
     """Retrieves the current automation status for a user."""
